@@ -47,6 +47,11 @@ namespace androidBot
 
                     break;
             }
+
+            if (arg.Author.Id == 158883055367487488 && arg.Content == "right, android?")
+            {
+                await arg.Channel.SendMessageAsync("of course, sir");
+            }
         }
 
         private Task Log(LogMessage msg)
