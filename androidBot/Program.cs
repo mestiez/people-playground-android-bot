@@ -23,6 +23,8 @@ namespace androidBot
             await client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("android-token", EnvironmentVariableTarget.Machine));
             await client.StartAsync();
 
+            await client.SetActivityAsync(new Game("people die", ActivityType.Watching));
+
             await Task.Delay(-1);
         }
 
@@ -52,6 +54,18 @@ namespace androidBot
             {
                 await arg.Channel.SendMessageAsync("of course, sir");
             }
+
+            if (arg.Content.ToLower().Replace("'", "").Contains("who is vincents best friend") || arg.Content.ToLower().Contains("whos vincents best friend"))
+                await arg.Channel.SendMessageAsync("zooi");
+
+            if (arg.Author.Id == 209640476775677952 && (arg.Content.ToLower().Replace("'", "").Contains("who is my best friend") || arg.Content.ToLower().Contains("whos my best friend")))
+                await arg.Channel.SendMessageAsync("zooi");
+
+            if (arg.Author.Id == 158883055367487488 && (arg.Content.ToLower().Replace("'", "").Contains("who is my best friend") || arg.Content.ToLower().Contains("whos my best friend")))
+                await arg.Channel.SendMessageAsync("vincent");
+
+            if (arg.Content.ToLower().Replace("'", "").Contains("who is zoois best friend") || arg.Content.ToLower().Contains("whos zoois best friend"))
+                await arg.Channel.SendMessageAsync("vincent");
         }
 
         private Task Log(LogMessage msg)
