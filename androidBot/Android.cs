@@ -4,12 +4,12 @@ using Discord.WebSocket;
 using System;
 using System.Threading.Tasks;
 
-namespace androidBot
+namespace AndroidBot
 {
-    public class ActualBot
+    public class Android
     {
         public static void Main(string[] args)
-            => new ActualBot().MainAsync().GetAwaiter().GetResult();
+            => new Android().MainAsync().GetAwaiter().GetResult();
 
         private DiscordSocketClient client;
 
