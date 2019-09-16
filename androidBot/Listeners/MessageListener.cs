@@ -5,19 +5,10 @@ namespace AndroidBot.Listeners
 {
     public abstract class MessageListener
     {
-        public virtual ulong Server { get; private set; } = AndroidBot.Server.Channels.Any;
-        public virtual ulong User { get; private set; } = AndroidBot.Server.Users.Any;
+        public virtual ulong[] SpecificChannels { get; private set; } = { AndroidBot.Server.Channels.Any };
+        public virtual ulong[] SpecificUsers { get; private set; } = { AndroidBot.Server.Users.Any };
 
-        public abstract Task OnMessage(SocketMessage arg);
-    }
-
-    public class SuggestionListener : MessageListener
-    {
-        public override ulong Server => AndroidBot.Server.Channels.Suggestions;
-
-        public override Task OnMessage(SocketMessage arg)
-        {
-            throw new System.NotImplementedException();
-        }
+        public abstract Task Initialise();
+        public abstract Task OnMessage(SocketMessage arg, Android android);
     }
 }

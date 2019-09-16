@@ -1,7 +1,10 @@
-﻿using Discord;
+﻿using AndroidBot.Listeners;
+using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace AndroidBot
@@ -11,19 +14,24 @@ namespace AndroidBot
         public static void Main(string[] args)
             => new Android().MainAsync().GetAwaiter().GetResult();
 
-        private DiscordSocketClient client;
+        public readonly DiscordSocketClient Client = new DiscordSocketClient();
+        public readonly List<MessageListener> Listeners = new List<MessageListener>();
 
         public async Task MainAsync()
         {
-            client = new DiscordSocketClient();
+            Client.Log += Log;
+            Client.MessageReceived += MessageReceived;
 
-            client.Log += Log;
-            client.MessageReceived += MessageReceived;
+            await Client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("android-token", EnvironmentVariableTarget.Machine));
+            await Client.StartAsync();
 
-            await client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("android-token", EnvironmentVariableTarget.Machine));
-            await client.StartAsync();
+            //await client.SetActivityAsync(new Game("Minecraft", ActivityType.Playing));
 
-            await client.SetActivityAsync(new Game("people die", ActivityType.Watching));
+            Listeners.Add(new DebugListener());
+            Listeners.Add(new SuggestionListener());
+
+            foreach (MessageListener listener in Listeners)
+                await listener.Initialise();
 
             await Task.Delay(-1);
         }
@@ -31,41 +39,17 @@ namespace AndroidBot
         private async Task MessageReceived(SocketMessage arg)
         {
             Console.WriteLine("Message received");
-            switch (arg.Channel.Id)
+
+            foreach (MessageListener listener in Listeners)
             {
-                // #suggestions
-                case 605732562492456970:
-                    string content = arg.Content;
-                    if (!content.Trim().ToLower().StartsWith("suggestion:")) break; //yep this sure is a suggestion
+                if (!listener.SpecificChannels.Contains(Server.Channels.Any))
+                    if (!listener.SpecificChannels.Contains(arg.Channel.Id)) continue;
 
-                    Console.WriteLine("Suggestion found: " + content);
+                if (!listener.SpecificUsers.Contains(Server.Users.Any))
+                    if (!listener.SpecificUsers.Contains(arg.Author.Id)) continue;
 
-                    RestUserMessage restMessage = (RestUserMessage)await arg.Channel.GetMessageAsync(arg.Id);
-                    await restMessage.AddReactionsAsync(new IEmote[]
-                    {
-                        Emote.Parse("<:YES:604730173379706888>"),
-                        Emote.Parse("<:NO:604730173236969472>")
-                    }, RequestOptions.Default);
-
-                    break;
+                await listener.OnMessage(arg, this);
             }
-
-            if (arg.Author.Id == 158883055367487488 && arg.Content == "right, android?")
-            {
-                await arg.Channel.SendMessageAsync("of course, sir");
-            }
-
-            if (arg.Content.ToLower().Replace("'", "").Contains("who is vincents best friend") || arg.Content.ToLower().Contains("whos vincents best friend"))
-                await arg.Channel.SendMessageAsync("zooi");
-
-            if (arg.Author.Id == 209640476775677952 && (arg.Content.ToLower().Replace("'", "").Contains("who is my best friend") || arg.Content.ToLower().Contains("whos my best friend")))
-                await arg.Channel.SendMessageAsync("zooi");
-
-            if (arg.Author.Id == 158883055367487488 && (arg.Content.ToLower().Replace("'", "").Contains("who is my best friend") || arg.Content.ToLower().Contains("whos my best friend")))
-                await arg.Channel.SendMessageAsync("vincent");
-
-            if (arg.Content.ToLower().Replace("'", "").Contains("who is zoois best friend") || arg.Content.ToLower().Contains("whos zoois best friend"))
-                await arg.Channel.SendMessageAsync("vincent");
         }
 
         private Task Log(LogMessage msg)

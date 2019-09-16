@@ -30,12 +30,13 @@ namespace AndroidBot
             public const ulong Vincent = 209640476775677952;
             public const ulong Vila = 298068138698735617;
             public const ulong JoeLouis = 187872460232851467;
+            public const ulong Besm = 150739418481688576;
         }
 
         public struct Emotes
         {
-            public Emote YES => Emote.Parse("<:YES:604730173379706888>");
-            public Emote NO => Emote.Parse("<:YES:604730173379706888>");
+            public static Emote YES => Emote.Parse("<:YES:604730173379706888>");
+            public static Emote NO => Emote.Parse("<:NO:604730173236969472>");
         }
     }
 }
