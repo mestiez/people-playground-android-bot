@@ -10,9 +10,34 @@ namespace AndroidBot.Listeners
     {
         public override ulong[] SpecificUsers => new[] { Server.Users.Mestiez, Server.Users.Vila, Server.Users.Vincent, Server.Users.JoeLouis, Server.Users.Besm };
 
-        public const string Prefix = "android";
+        public readonly string[] Prefixes = {
+            "android",
+            "android!",
+            "android!!",
+            "android!!!",
+            "android.",
+            "android...",
+            "android,",
+
+            "bot",
+            "bot!",
+            "bot!!",
+            "bot!!!",
+            "bot.",
+            "bot...",
+            "bot,",
+
+            "robot",
+            "robot!",
+            "robot!!",
+            "robot!!!",
+            "robot.",
+            "robot...",
+            "robot," };
 
         private readonly Dictionary<string, Delegate> commands = new Dictionary<string, Delegate>();
+        private bool isWaitingForCommand;
+        private ulong waitingFor;
 
         public async override Task Initialise()
         {
@@ -36,16 +61,48 @@ namespace AndroidBot.Listeners
         {
             string content = arg.Content.ToLower().Trim().Normalize();
 
-            if (!content.StartsWith(Prefix)) return;
+            if (isWaitingForCommand && waitingFor == arg.Author.Id)
+            {
+                isWaitingForCommand = false;
+                await handleCommand(content);
+                return;
+            }
 
-            content = content.Remove(0, Prefix.Length);
+            foreach (string prefix in Prefixes.OrderByDescending(s => s.Length))
+            {
+                if (!content.StartsWith(prefix)) continue;
+                content = content.Remove(0, prefix.Length);
+                if (content.Trim().Length == 0)
+                {
+                    // user just addressed the bot, so their next message is a command unless otherwise is specified
+                    Console.WriteLine("WAITING FOR COMMAND...");
+                    await WaitForNextCommand(arg, android);
+                    return;
+                }
+                await handleCommand(content);
+                return;
+            }
 
-            string[] parts = content.Split(' ').Where(e => !string.IsNullOrWhiteSpace(e)).ToArray();
+            async Task handleCommand(string contentWithoutPrefix)
+            {
+                if (content.Trim().Length == 0)
+                {
+                    Console.WriteLine("Empty command...");
+                    return;
+                }
+                string[] parts = content.Split(' ').Where(e => !string.IsNullOrWhiteSpace(e)).ToArray();
+                string command = parts[0];
+                string[] arguments = parts.Skip(1).ToArray();
+                await Execute(command, new CommandParameters(arg, android, arguments));
+            }
+        }
 
-            string command = parts[0];
-            string[] arguments = parts.Skip(1).ToArray();
-
-            await Execute(command, new CommandParameters(arg, android, arguments));
+        private async Task WaitForNextCommand(SocketMessage arg, Android android)
+        {
+            waitingFor = arg.Author.Id;
+            string[] responses = { "what is up", "?", "??", "what", "yes", "hm?", "yes sir", "AT YOUR SERVICE", "present", "何" };
+            await arg.Channel.SendMessageAsync(responses.PickRandom());
+            isWaitingForCommand = true;
         }
 
         private async Task Execute(string command, CommandParameters parameters)

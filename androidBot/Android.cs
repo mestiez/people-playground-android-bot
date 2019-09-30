@@ -17,6 +17,8 @@ namespace AndroidBot
         public readonly DiscordSocketClient Client = new DiscordSocketClient();
         public readonly List<MessageListener> Listeners = new List<MessageListener>();
 
+        public SocketGuild MainGuild => Client.GetGuild(603649973510340619);
+
         public async Task MainAsync()
         {
             Client.Log += Log;
@@ -24,14 +26,13 @@ namespace AndroidBot
 
             await Client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("android-token", EnvironmentVariableTarget.Machine));
             await Client.StartAsync();
-
-            //await client.SetActivityAsync(new Game("Minecraft", ActivityType.Playing));
-
+            Console.WriteLine(MainGuild);
             Listeners.Add(new DebugListener());
             Listeners.Add(new SuggestionListener());
 
             foreach (MessageListener listener in Listeners)
                 await listener.Initialise();
+
 
             await Task.Delay(-1);
         }
