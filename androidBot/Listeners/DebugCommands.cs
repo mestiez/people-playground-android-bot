@@ -19,52 +19,16 @@ namespace AndroidBot.Listeners
             await parameters.SocketMessage.Channel.SendMessageAsync("pong");
         }
 
-        [Command]
-        public async Task Cancel(CommandParameters parameters)
-        {
-            await parameters.SocketMessage.Channel.SendMessageAsync("ok");
-        }
-
-        [Command]
-        public async Task Nevermind(CommandParameters parameters)
-        {
-            await parameters.SocketMessage.Channel.SendMessageAsync("ok");
-        }
-
-        [Command]
-        public async Task Nvm(CommandParameters parameters)
-        {
-            await parameters.SocketMessage.Channel.SendMessageAsync("ok");
-        }
-
-        [Command]
+        [Command(new[] { "nevermind", "shut", "cancel", "nothing", "nvm", "ignore that", "shut up" })]
         public async Task Nothing(CommandParameters parameters)
         {
             await parameters.SocketMessage.Channel.SendMessageAsync("ok");
         }
 
-        [Command]
-        public async Task Greetings(CommandParameters parameters)
-        {
-            await parameters.SocketMessage.Channel.SendMessageAsync(greetings.PickRandom());
-        }
-
-        [Command]
+        [Command(new[] { "hello", "hey", "o/", "oi", "hey", ":)", "greetings" })]
         public async Task Hi(CommandParameters parameters)
         {
-            await Greetings(parameters);
-        }
-
-        [Command]
-        public async Task Hey(CommandParameters parameters)
-        {
-            await Greetings(parameters);
-        }
-
-        [Command]
-        public async Task Hello(CommandParameters parameters)
-        {
-            await Greetings(parameters);
+            await parameters.SocketMessage.Channel.SendMessageAsync(greetings.PickRandom());
         }
 
         [Command]
@@ -145,6 +109,12 @@ namespace AndroidBot.Listeners
         {
             var mutedRole = parameters.Android.MainGuild.GetRole(Server.Roles.Muted);
             var matches = Regex.Matches(parameters.SocketMessage.Content, "<@(.*?)>");
+            if (!matches.Any())
+            {
+                await parameters.SocketMessage.Channel.SendMessageAsync("you didn't specify any users");
+                return;
+            }
+
             List<SocketGuildUser> usersToMute = new List<SocketGuildUser>();
 
             foreach (Match match in matches)

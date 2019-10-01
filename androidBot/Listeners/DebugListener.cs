@@ -81,7 +81,7 @@ namespace AndroidBot.Listeners
 
         private List<string> generatedTriggers = new List<string>();
 
-        private readonly Dictionary<string, Delegate> commands = new Dictionary<string, Delegate>();
+        private readonly List<CommandReference> commands = new List<CommandReference>();
         private bool isWaitingForCommand;
         private ulong waitingFor;
 
@@ -91,20 +91,26 @@ namespace AndroidBot.Listeners
             var methods = type.GetMethods();
             foreach (var method in methods)
             {
-                if (!method.GetCustomAttributes(typeof(CommandAttribute), true).Any()) continue;
+                var commandAttributes = method.GetCustomAttributes(typeof(CommandAttribute), true) as CommandAttribute[];
+                if (!commandAttributes.Any()) continue;
+
+                CommandReference reference = new CommandReference();
 
                 string name = method.Name.ToLower();
-                commands.Add(name, Delegate.CreateDelegate(typeof(Func<CommandParameters, Task>), this, method));
+                List<string> aliases = new List<string>(commandAttributes.SelectMany(c => c.Aliases).Append(name));
+
+                reference.Aliases = aliases.ToArray();
+                reference.Permissions = commandAttributes;
+                reference.Delegate = Delegate.CreateDelegate(typeof(Func<CommandParameters, Task>), this, method);
+
+                commands.Add(reference);
                 Console.WriteLine("Command registered: " + name);
             }
 
             foreach (var middle in Names)
                 foreach (var begin in Prefixes)
                     foreach (var end in Suffixes)
-                    {
                         generatedTriggers.Add(begin + middle + end);
-                        
-                    }
 
             generatedTriggers = generatedTriggers.OrderByDescending(s => s.Length).ToList();
             Console.WriteLine(string.Join("\n", generatedTriggers));
@@ -132,7 +138,7 @@ namespace AndroidBot.Listeners
                 if (content.Trim().Length == 0)
                 {
                     // user just addressed the bot, so their next message is a command unless otherwise is specified
-                    Console.WriteLine("WAITING FOR COMMAND...");
+                    Console.WriteLine("Waiting for command...");
                     await WaitForNextCommand(arg);
                     return;
                 }
@@ -164,31 +170,17 @@ namespace AndroidBot.Listeners
 
         private async Task Execute(string command, CommandParameters parameters)
         {
-            if (commands.TryGetValue(command, out Delegate func))
-                await (func.DynamicInvoke(parameters) as Task);
+            foreach (CommandReference commandReference in commands)
+            {
+                if (!commandReference.Aliases.Contains(command)) continue;
+
+                var m = parameters.SocketMessage;
+                if (!commandReference.IsAuthorised(m.Channel.Id, m.Author.Id, parameters.Android.MainGuild.GetUser(m.Author.Id).Roles)) continue;
+
+                await (commandReference.Delegate.DynamicInvoke(parameters) as Task);
+            }
 
             await Task.CompletedTask;
-        }
-
-        public class CommandAttribute : Attribute, IPermissions
-        {
-            public virtual ulong[] Channels { get; private set; } = { Server.Channels.Any };
-            public virtual ulong[] Users { get; private set; } = { Server.Users.Any };
-            public virtual ulong[] Roles { get; private set; } = { Server.Users.Any };
-        }
-
-        public struct CommandParameters
-        {
-            public SocketMessage SocketMessage;
-            public Android Android;
-            public string[] Arguments;
-
-            public CommandParameters(SocketMessage socketMessage, Android android, string[] arguments)
-            {
-                SocketMessage = socketMessage;
-                Android = android;
-                Arguments = arguments;
-            }
         }
     }
 }
