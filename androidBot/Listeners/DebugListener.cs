@@ -11,29 +11,64 @@ namespace AndroidBot.Listeners
         public override ulong[] SpecificUsers => new[] { Server.Users.Mestiez, Server.Users.Vila, Server.Users.Vincent, Server.Users.JoeLouis, Server.Users.Besm };
 
         public readonly string[] Prefixes = {
+            "",
+            "hey ",
+            "ay ",
+            "oy ",
+            "okay ",
+            "oi ",
+            "ok ",
+            "mr ",
+            "mr.",
+            "mr. ",
+            "mister ",
+        };
+
+        public readonly string[] Suffixes = {
+            "",
+            ".",
+            "..",
+            "...",
+            ",",
+            "?",
+            "??",
+            "???",
+            "!",
+            "!!",
+            "!!!",
+            "san",
+            "chan",
+            "kun",
+            " san",
+            " chan",
+            " kun",
+            "-san",
+            "-chan",
+            "-kun",
+        };
+
+        public readonly string[] Names = {
             "android",
-            "android!",
-            "android!!",
-            "android!!!",
-            "android.",
-            "android...",
-            "android,",
-
             "bot",
-            "bot!",
-            "bot!!",
-            "bot!!!",
-            "bot.",
-            "bot...",
-            "bot,",
-
+            "droid",
+            "biscuit",
+            "biscuit #1",
+            "biscuit #2",
+            "biscuit 1",
+            "biscuit 2",
+            "robotboy",
+            "r2",
+            "r2d2",
+            "computer",
+            "slave",
+            "c3po",
+            "3po",
+            "xj9",
+            "nano",
             "robot",
-            "robot!",
-            "robot!!",
-            "robot!!!",
-            "robot.",
-            "robot...",
-            "robot," };
+        };
+
+        private List<string> generatedTriggers = new List<string>();
 
         private readonly Dictionary<string, Delegate> commands = new Dictionary<string, Delegate>();
         private bool isWaitingForCommand;
@@ -41,8 +76,6 @@ namespace AndroidBot.Listeners
 
         public async override Task Initialise()
         {
-            Console.WriteLine(GetType().Name + " initialised");
-
             var type = GetType();
             var methods = type.GetMethods();
             foreach (var method in methods)
@@ -54,6 +87,14 @@ namespace AndroidBot.Listeners
                 Console.WriteLine("Command registered: " + name);
             }
 
+            foreach (var middle in Names)
+                foreach (var begin in Prefixes)
+                    foreach (var end in Suffixes)
+                        generatedTriggers.Add(begin + middle + end);
+
+            generatedTriggers = generatedTriggers.OrderByDescending(s => s.Length).ToList();
+
+            Console.WriteLine(GetType().Name + " initialised");
             await Task.CompletedTask;
         }
 
@@ -68,10 +109,11 @@ namespace AndroidBot.Listeners
                 return;
             }
 
-            foreach (string prefix in Prefixes.OrderByDescending(s => s.Length))
+            foreach (string trigger in generatedTriggers)
             {
-                if (!content.StartsWith(prefix)) continue;
-                content = content.Remove(0, prefix.Length);
+                if (!content.StartsWith(trigger)) continue;
+
+                content = content.Remove(0, trigger.Length);
                 if (content.Trim().Length == 0)
                 {
                     // user just addressed the bot, so their next message is a command unless otherwise is specified
