@@ -22,6 +22,12 @@ namespace AndroidBot.Listeners
             "mr.",
             "mr. ",
             "mister ",
+            "...",
+            "lmao ",
+            "lol",
+            "our ",
+            "the ",
+            "my ",
         };
 
         public readonly string[] Suffixes = {
