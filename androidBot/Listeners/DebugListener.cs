@@ -24,7 +24,7 @@ namespace AndroidBot.Listeners
             "mister ",
             "...",
             "lmao ",
-            "lol",
+            "lol ",
             "our ",
             "the ",
             "my ",
@@ -96,7 +96,10 @@ namespace AndroidBot.Listeners
             foreach (var middle in Names)
                 foreach (var begin in Prefixes)
                     foreach (var end in Suffixes)
+                    {
                         generatedTriggers.Add(begin + middle + end);
+                        Console.WriteLine("Trigger added: " + begin + middle + end);
+                    }
 
             generatedTriggers = generatedTriggers.OrderByDescending(s => s.Length).ToList();
 
