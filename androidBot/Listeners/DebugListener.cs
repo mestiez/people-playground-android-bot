@@ -108,6 +108,7 @@ namespace AndroidBot.Listeners
 
             generatedTriggers = generatedTriggers.OrderByDescending(s => s.Length).ToList();
             Console.WriteLine(string.Join("\n", generatedTriggers));
+            Console.WriteLine("Android is addressable with a total of " + generatedTriggers.Count + " different phrases");
             Console.WriteLine(GetType().Name + " initialised");
             await Task.CompletedTask;
         }
