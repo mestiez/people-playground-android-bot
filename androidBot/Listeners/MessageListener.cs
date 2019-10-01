@@ -3,10 +3,11 @@ using System.Threading.Tasks;
 
 namespace AndroidBot.Listeners
 {
-    public abstract class MessageListener
+    public abstract class MessageListener : IPermissions
     {
-        public virtual ulong[] SpecificChannels { get; private set; } = { AndroidBot.Server.Channels.Any };
-        public virtual ulong[] SpecificUsers { get; private set; } = { AndroidBot.Server.Users.Any };
+        public virtual ulong[] Roles { get; private set; } = {  };
+        public virtual ulong[] Users { get; private set; } = {  };
+        public virtual ulong[] Channels { get; private set; } = {  };
 
         public abstract Task Initialise();
         public abstract Task OnMessage(SocketMessage arg, Android android);

@@ -8,7 +8,9 @@ namespace AndroidBot.Listeners
 {
     public class SuggestionListener : MessageListener
     {
-        public override ulong[] SpecificChannels => new[] { AndroidBot.Server.Channels.Suggestions };
+        public override ulong[] Channels => new[] { Server.Channels.Suggestions };
+        public override ulong[] Roles => new[] { Server.Roles.Any };
+        public override ulong[] Users => new[] { Server.Users.Any };
 
         public override async Task Initialise()
         {

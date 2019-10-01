@@ -26,11 +26,11 @@ namespace AndroidBot
         {
             public const ulong Any = 0;
 
-            public const ulong Mestiez = 158883055367487488;
-            public const ulong Vincent = 209640476775677952;
-            public const ulong Vila = 298068138698735617;
-            public const ulong JoeLouis = 187872460232851467;
-            public const ulong Besm = 150739418481688576;
+            public const ulong zooi = 158883055367487488;
+            public const ulong Vincentmario = 209640476775677952;
+            public const ulong Koof = 298068138698735617;
+            public const ulong Dikkiedik = 187872460232851467;
+            public const ulong Orongto = 150739418481688576;
         }
 
         public struct Roles

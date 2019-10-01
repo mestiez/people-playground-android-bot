@@ -11,7 +11,7 @@ namespace AndroidBot
 {
     public class Android
     {
-        public static void Main(string[] args)
+        public static void Main()
             => new Android().MainAsync().GetAwaiter().GetResult();
 
         public readonly DiscordSocketClient Client = new DiscordSocketClient();
@@ -43,14 +43,21 @@ namespace AndroidBot
 
             foreach (MessageListener listener in Listeners)
             {
-                if (!listener.SpecificChannels.Contains(Server.Channels.Any))
-                    if (!listener.SpecificChannels.Contains(arg.Channel.Id)) continue;
+                var guildUser = MainGuild.GetUser(arg.Author.Id);
+                if (!IsAuthorised(listener, arg.Channel.Id, arg.Author.Id, guildUser.Roles)) continue;
 
-                if (!listener.SpecificUsers.Contains(Server.Users.Any))
-                    if (!listener.SpecificUsers.Contains(arg.Author.Id)) continue;
 
                 await listener.OnMessage(arg, this);
             }
+        }
+
+        private bool IsAuthorised(IPermissions permissions, ulong channel, ulong user, IEnumerable<IRole> roles)
+        {
+            bool c = permissions.Channels.Contains(Server.Channels.Any) || permissions.Channels.Contains(channel);
+            bool u = permissions.Users.Contains(Server.Users.Any) || permissions.Users.Contains(user);
+            bool r = permissions.Roles.Contains(Server.Roles.Any) || permissions.Roles.Any(i => roles.Any(role => role.Id == i));
+
+            return c && (u || r);
         }
 
         private Task Log(LogMessage msg)

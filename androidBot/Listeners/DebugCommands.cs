@@ -11,7 +11,7 @@ namespace AndroidBot.Listeners
 {
     public partial class DebugListener : MessageListener
     {
-        string[] greetings = { "hi", ":)", "hello", "o/", "o//", "hi :)" };
+        private readonly string[] greetings = { "hi", ":)", "hello", "o/", "o//", "hi :)" };
 
         [Command]
         public async Task Ping(CommandParameters parameters)
@@ -195,7 +195,7 @@ namespace AndroidBot.Listeners
             await parameters.SocketMessage.Channel.SendMessageAsync(
                 string.Join("\n",
                 parameters.Android.Listeners.
-                Where(l => l.SpecificChannels.Contains(parameters.SocketMessage.Channel.Id) || l.SpecificChannels.Contains(Server.Channels.Any)).
+                Where(l => l.Channels.Contains(parameters.SocketMessage.Channel.Id) || l.Channels.Contains(Server.Channels.Any)).
                 Select(l => l.GetType().Name)));
         }
     }

@@ -8,7 +8,8 @@ namespace AndroidBot.Listeners
 {
     public partial class DebugListener : MessageListener
     {
-        public override ulong[] SpecificUsers => new[] { Server.Users.Mestiez, Server.Users.Vila, Server.Users.Vincent, Server.Users.JoeLouis, Server.Users.Besm };
+        public override ulong[] Channels => new[] { Server.Channels.Any };
+        public override ulong[] Roles => new[] { Server.Roles.Moderators, Server.Roles.Developers, Server.Roles.Bots };
 
         public readonly string[] Prefixes = {
             "",
@@ -51,6 +52,9 @@ namespace AndroidBot.Listeners
             "-san",
             "-chan",
             "-kun",
+            "さん",
+            "ちゃん",
+            "くん",
         };
 
         public readonly string[] Names = {
@@ -72,6 +76,7 @@ namespace AndroidBot.Listeners
             "xj9",
             "nano",
             "robot",
+            "ロボット",
         };
 
         private List<string> generatedTriggers = new List<string>();
@@ -98,11 +103,11 @@ namespace AndroidBot.Listeners
                     foreach (var end in Suffixes)
                     {
                         generatedTriggers.Add(begin + middle + end);
-                        Console.WriteLine("Trigger added: " + begin + middle + end);
+                        
                     }
 
             generatedTriggers = generatedTriggers.OrderByDescending(s => s.Length).ToList();
-
+            Console.WriteLine(string.Join("\n", generatedTriggers));
             Console.WriteLine(GetType().Name + " initialised");
             await Task.CompletedTask;
         }
@@ -127,7 +132,7 @@ namespace AndroidBot.Listeners
                 {
                     // user just addressed the bot, so their next message is a command unless otherwise is specified
                     Console.WriteLine("WAITING FOR COMMAND...");
-                    await WaitForNextCommand(arg, android);
+                    await WaitForNextCommand(arg);
                     return;
                 }
                 await handleCommand(content);
@@ -148,7 +153,7 @@ namespace AndroidBot.Listeners
             }
         }
 
-        private async Task WaitForNextCommand(SocketMessage arg, Android android)
+        private async Task WaitForNextCommand(SocketMessage arg)
         {
             waitingFor = arg.Author.Id;
             string[] responses = { "what is up", "?", "??", "what", "yes", "hm?", "yes sir", "AT YOUR SERVICE", "present", "何" };
@@ -164,7 +169,12 @@ namespace AndroidBot.Listeners
             await Task.CompletedTask;
         }
 
-        public class CommandAttribute : Attribute { }
+        public class CommandAttribute : Attribute, IPermissions
+        {
+            public virtual ulong[] Channels { get; private set; } = { Server.Channels.Any };
+            public virtual ulong[] Users { get; private set; } = { Server.Users.Any };
+            public virtual ulong[] Roles { get; private set; } = { Server.Users.Any };
+        }
 
         public struct CommandParameters
         {
