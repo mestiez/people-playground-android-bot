@@ -32,7 +32,7 @@ namespace AndroidBot.Listeners
                 if (!violation.Violates(arg, android)) continue;
 
                 var entry = $"{arg.Author.Username}({arg.Author.Discriminator}): {arg.Content}{Environment.NewLine}";
-                Console.WriteLine("Violation:" + $"{arg.Author.Username}({arg.Author.Discriminator}): {arg.Content}{Environment.NewLine}");
+                Console.WriteLine("Violation by " + $"{arg.Author.Username}({arg.Author.Discriminator}): {arg.Content}{Environment.NewLine}");
                 File.AppendAllTextAsync(Path, entry);
             }
 
