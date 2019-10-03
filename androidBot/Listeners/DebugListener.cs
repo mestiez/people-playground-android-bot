@@ -16,6 +16,7 @@ namespace AndroidBot.Listeners
             "hey ",
             "ay ",
             "oy ",
+            "yo ",
             "okay ",
             "oi ",
             "ok ",
