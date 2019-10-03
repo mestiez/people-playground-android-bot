@@ -29,6 +29,7 @@ namespace AndroidBot
             await Client.StartAsync();
 
             Listeners.Add(new DebugListener());
+            Listeners.Add(new ViolationListener());
             Listeners.Add(new SuggestionListener());
 
             foreach (MessageListener listener in Listeners)
