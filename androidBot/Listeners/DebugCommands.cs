@@ -19,7 +19,7 @@ namespace AndroidBot.Listeners
             await parameters.SocketMessage.Channel.SendMessageAsync("pong");
         }
 
-        [Command(new[] { "nevermind", "shut", "cancel", "nothing", "nvm", "ignore that", "shut up" })]
+        [Command(new[] { "nevermind", "shut", "cancel", "nothing", "nvm", "ignore", "no" })]
         public async Task Nothing(CommandParameters parameters)
         {
             await parameters.SocketMessage.Channel.SendMessageAsync("ok");
