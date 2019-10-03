@@ -27,8 +27,14 @@ namespace AndroidBot.Listeners
         {
             if (arg.Author.IsBot) return Task.CompletedTask;
 
-            if (arg.MentionedUsers.Any(s => s.Id == Server.Users.zooi))
-                File.AppendAllTextAsync(Path,  $"{arg.Author.Username}({arg.Author.Discriminator}): {arg.Content}{Environment.NewLine}");
+            foreach (var violation in Violations)
+            {
+                if (!violation.Violates(arg, android)) continue;
+
+                var entry = $"{arg.Author.Username}({arg.Author.Discriminator}): {arg.Content}{Environment.NewLine}";
+                Console.WriteLine("Violation:" + $"{arg.Author.Username}({arg.Author.Discriminator}): {arg.Content}{Environment.NewLine}");
+                File.AppendAllTextAsync(Path, entry);
+            }
 
             return Task.CompletedTask;
         }
