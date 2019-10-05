@@ -80,7 +80,7 @@ namespace AndroidBot.Listeners
                 }
                 catch (Exception)
                 {
-                    await parameters.SocketMessage.Channel.SendMessageAsync("i don't know what \"" + match.Value + "\" means, so I will fall back to the default of 15 minutes");
+                    await parameters.SocketMessage.Channel.SendMessageAsync(string.Format("i don't know what \"{0}\" means, so I will fall back to the default of 15 minutes", match.Value));
                     await Task.Delay(TimeSpan.FromSeconds(0.5f));
                 }
             }

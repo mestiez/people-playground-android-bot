@@ -88,6 +88,29 @@ namespace AndroidBot.Listeners
 
         public async override Task Initialise()
         {
+            LoadConfig();
+
+            LoadCommands();
+
+            LoadTriggers();
+            Console.WriteLine(string.Join("\n", generatedTriggers));
+            Console.WriteLine("Android is addressable with a total of " + generatedTriggers.Count + " different phrases");
+            Console.WriteLine(GetType().Name + " initialised");
+            await Task.CompletedTask;
+        }
+
+        private void LoadTriggers()
+        {
+            foreach (var middle in Names)
+                foreach (var begin in Prefixes)
+                    foreach (var end in Suffixes)
+                        generatedTriggers.Add(begin + middle + end);
+
+            generatedTriggers = generatedTriggers.OrderByDescending(s => s.Length).ToList();
+        }
+
+        private void LoadCommands()
+        {
             var type = GetType();
             var methods = type.GetMethods();
             foreach (var method in methods)
@@ -107,17 +130,11 @@ namespace AndroidBot.Listeners
                 commands.Add(reference);
                 Console.WriteLine("Command registered: " + name);
             }
+        }
 
-            foreach (var middle in Names)
-                foreach (var begin in Prefixes)
-                    foreach (var end in Suffixes)
-                        generatedTriggers.Add(begin + middle + end);
-
-            generatedTriggers = generatedTriggers.OrderByDescending(s => s.Length).ToList();
-            Console.WriteLine(string.Join("\n", generatedTriggers));
-            Console.WriteLine("Android is addressable with a total of " + generatedTriggers.Count + " different phrases");
-            Console.WriteLine(GetType().Name + " initialised");
-            await Task.CompletedTask;
+        private void LoadConfig()
+        {
+            throw new NotImplementedException();
         }
 
         public override async Task OnMessage(SocketMessage arg, Android android)
