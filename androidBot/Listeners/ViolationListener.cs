@@ -13,7 +13,7 @@ namespace AndroidBot.Listeners
         public override ulong[] Channels => new[] { Server.Channels.Any };
         public override ulong[] Users => new[] { Server.Users.Any };
 
-        public const string Path = "violation_log.txt";
+        public const string Filename = "violation_log.txt";
         public HashSet<IViolation> Violations { get; } = new HashSet<IViolation>();
 
         public override Task Initialise()
@@ -31,9 +31,10 @@ namespace AndroidBot.Listeners
             {
                 if (!violation.Violates(arg, android)) continue;
 
-                var entry = $"{arg.Author.Username}({arg.Author.Discriminator}): {arg.Content}{Environment.NewLine}";
-                Console.WriteLine("Violation by " + $"{arg.Author.Username}({arg.Author.Discriminator}): {arg.Content}{Environment.NewLine}");
-                File.AppendAllTextAsync(Path, entry);
+                const string hBreak = "---------------------------------------------------------------------";
+                var entry = $"\n{hBreak}\n{violation.GetType().Name} at {DateTime.Now.ToString()} by {arg.Author.Username}({arg.Author.Discriminator})\n\n{arg.Content}\n{hBreak}\n";
+                Console.WriteLine(entry);
+                File.AppendAllTextAsync(Environment.GetEnvironmentVariable("ANDROID_STORAGE") + Filename, entry);
             }
 
             return Task.CompletedTask;
