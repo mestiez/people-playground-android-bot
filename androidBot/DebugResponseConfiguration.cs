@@ -6,6 +6,10 @@ namespace AndroidBot
 {
     public struct DebugResponseConfiguration
     {
+        public const string Path = "DebugResponseConfiguration.json";
+        [NonSerialized]
+        public static DebugResponseConfiguration Current;
+
         public string[] Prefixes;
         public string[] Names;
         public string[] Suffixes;
@@ -22,5 +26,7 @@ namespace AndroidBot
 
         public string[] MutingNotification;
         public string[] UnmutingNotification;
+
+        public string[] ModCleaningAliases;
     }
 }

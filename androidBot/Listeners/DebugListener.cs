@@ -1,6 +1,8 @@
 ﻿using Discord.WebSocket;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -9,76 +11,7 @@ namespace AndroidBot.Listeners
     public partial class DebugListener : MessageListener
     {
         public override ulong[] Channels => new[] { Server.Channels.Any };
-        public override ulong[] Roles => new[] { Server.Roles.Moderators, Server.Roles.Developers, Server.Roles.Bots };
-
-        public readonly string[] Prefixes = {
-            "",
-            "hey ",
-            "ay ",
-            "oy ",
-            "yo ",
-            "okay ",
-            "oi ",
-            "ok ",
-            "mr ",
-            "mr.",
-            "mr. ",
-            "mister ",
-            "...",
-            "lmao ",
-            "lol ",
-            "our ",
-            "the ",
-            "my ",
-        };
-
-        public readonly string[] Suffixes = {
-            "",
-            ".",
-            "..",
-            "...",
-            ",",
-            "?",
-            "??",
-            "???",
-            "!",
-            "!!",
-            "!!!",
-            "san",
-            "chan",
-            "kun",
-            " san",
-            " chan",
-            " kun",
-            "-san",
-            "-chan",
-            "-kun",
-            "さん",
-            "ちゃん",
-            "くん",
-        };
-
-        public readonly string[] Names = {
-            "android",
-            "bot",
-            "droid",
-            "biscuit",
-            "biscuit #1",
-            "biscuit #2",
-            "biscuit 1",
-            "biscuit 2",
-            "robotboy",
-            "r2",
-            "r2d2",
-            "computer",
-            "slave",
-            "c3po",
-            "3po",
-            "xj9",
-            "nano",
-            "robot",
-            "ロボット",
-        };
+        public override ulong[] Roles => new[] { Server.Roles.Moderators, Server.Roles.Administrators, Server.Roles.Developers, Server.Roles.Bots };
 
         private List<string> generatedTriggers = new List<string>();
 
@@ -88,22 +21,38 @@ namespace AndroidBot.Listeners
 
         public async override Task Initialise()
         {
-            LoadConfig();
-
+            await LoadConfiguration();
             LoadCommands();
 
             LoadTriggers();
             Console.WriteLine(string.Join("\n", generatedTriggers));
             Console.WriteLine("Android is addressable with a total of " + generatedTriggers.Count + " different phrases");
-            Console.WriteLine(GetType().Name + " initialised");
+        }
+
+        public async override Task Stop()
+        {
             await Task.CompletedTask;
+        }
+
+        private async Task LoadConfiguration()
+        {
+            try
+            {
+                var rawJson = await File.ReadAllTextAsync(Android.Path + DebugResponseConfiguration.Path);
+                DebugResponseConfiguration.Current = JsonConvert.DeserializeObject<DebugResponseConfiguration>(rawJson);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Unable to read debug config file ({e.Message})... can't continue");
+                await Task.Delay(-1);
+            }
         }
 
         private void LoadTriggers()
         {
-            foreach (var middle in Names)
-                foreach (var begin in Prefixes)
-                    foreach (var end in Suffixes)
+            foreach (var middle in DebugResponseConfiguration.Current.Names)
+                foreach (var begin in DebugResponseConfiguration.Current.Prefixes)
+                    foreach (var end in DebugResponseConfiguration.Current.Suffixes)
                         generatedTriggers.Add(begin + middle + end);
 
             generatedTriggers = generatedTriggers.OrderByDescending(s => s.Length).ToList();
@@ -118,6 +67,9 @@ namespace AndroidBot.Listeners
                 var commandAttributes = method.GetCustomAttributes(typeof(CommandAttribute), true) as CommandAttribute[];
                 if (!commandAttributes.Any()) continue;
 
+                foreach (var cmdA in commandAttributes)
+                    cmdA.Initialise();
+
                 CommandReference reference = new CommandReference();
 
                 string name = method.Name.ToLower();
@@ -130,11 +82,6 @@ namespace AndroidBot.Listeners
                 commands.Add(reference);
                 Console.WriteLine("Command registered: " + name);
             }
-        }
-
-        private void LoadConfig()
-        {
-            throw new NotImplementedException();
         }
 
         public override async Task OnMessage(SocketMessage arg, Android android)
@@ -181,8 +128,7 @@ namespace AndroidBot.Listeners
         private async Task WaitForNextCommand(SocketMessage arg)
         {
             waitingFor = arg.Author.Id;
-            string[] responses = { "what is up", "?", "??", "what", "yes", "hm?", "yes sir", "AT YOUR SERVICE", "present", "何" };
-            await arg.Channel.SendMessageAsync(responses.PickRandom());
+            await arg.Channel.SendMessageAsync(DebugResponseConfiguration.Current.TaskAwaitResponses.PickRandom());
             isWaitingForCommand = true;
         }
 

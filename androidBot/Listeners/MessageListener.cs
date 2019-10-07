@@ -11,5 +11,6 @@ namespace AndroidBot.Listeners
 
         public abstract Task Initialise();
         public abstract Task OnMessage(SocketMessage arg, Android android);
+        public abstract Task Stop();
     }
 }

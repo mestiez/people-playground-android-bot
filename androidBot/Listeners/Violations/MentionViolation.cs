@@ -1,14 +1,10 @@
 ﻿using Discord.WebSocket;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace AndroidBot.Listeners
 {
-    public interface IViolation
-    {
-        bool Violates(SocketMessage message, Android android);
-    }
-
     public struct MentionViolation : IViolation
     {
         public IEnumerable<ulong> Users;
@@ -21,6 +17,12 @@ namespace AndroidBot.Listeners
         public bool Violates(SocketMessage message, Android android)
         {
             return Users.Intersect(message.MentionedUsers.Select(u => u.Id)).Any();
+        }
+
+        public Task Consequence()
+        {
+            //no consequences except logging
+            return Task.CompletedTask;
         }
     }
 }

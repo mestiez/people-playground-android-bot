@@ -14,13 +14,17 @@ namespace AndroidBot.Listeners
 
         public override async Task Initialise()
         {
-            Console.WriteLine(GetType().Name + " initialised");
             await Task.CompletedTask;
         }
 
         public override async Task OnMessage(SocketMessage arg, Android android)
         {
             await CheckNewSuggestion(arg);
+        }
+
+        public override async Task Stop()
+        {
+            await Task.CompletedTask;
         }
 
         private async Task CheckNewSuggestion(SocketMessage arg)

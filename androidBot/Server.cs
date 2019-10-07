@@ -19,7 +19,12 @@ namespace AndroidBot
 
             public const ulong General = 603649974042886296;
             public const ulong PeoplePlayground = 603849809178132501;
+            public const ulong Programming = 622788199886094347;
+            public const ulong CrudeModding = 625596219921530890;
             public const ulong UnfunnyMemes = 611284040036646922;
+
+            public const ulong BotTesting = 622823053444775956;
+            public const ulong Secret = 623035131845672990;
         }
 
         public struct Users
@@ -42,6 +47,7 @@ namespace AndroidBot
             public const ulong Bots = 621670270717132801;
             public const ulong Boosters = 619331382484926465;
             public const ulong Moderators = 603650422884007956;
+            public const ulong Administrators = 630434044965814273;
             public const ulong Developers = 603657996614107138;
         }
 

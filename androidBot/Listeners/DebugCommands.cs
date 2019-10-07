@@ -3,6 +3,7 @@ using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -11,24 +12,22 @@ namespace AndroidBot.Listeners
 {
     public partial class DebugListener : MessageListener
     {
-        private readonly string[] greetings = { "hi", ":)", "hello", "o/", "o//", "hi :)" };
-
         [Command]
         public async Task Ping(CommandParameters parameters)
         {
             await parameters.SocketMessage.Channel.SendMessageAsync("pong");
         }
 
-        [Command(new[] { "nevermind", "shut", "cancel", "nothing", "nvm", "ignore", "no" })]
+        [ReflectiveCommand(nameof(DebugResponseConfiguration.Current.NevermindTriggers))]
         public async Task Nothing(CommandParameters parameters)
         {
             await parameters.SocketMessage.Channel.SendMessageAsync("ok");
         }
 
-        [Command(new[] { "hello", "hey", "o/", "oi", "hey", ":)", "greetings" })]
+        [ReflectiveCommand(nameof(DebugResponseConfiguration.Current.GreetingTriggers))]
         public async Task Hi(CommandParameters parameters)
         {
-            await parameters.SocketMessage.Channel.SendMessageAsync(greetings.PickRandom());
+            await parameters.SocketMessage.Channel.SendMessageAsync(DebugResponseConfiguration.Current.GreetingResponses.PickRandom());
         }
 
         [Command]
@@ -50,6 +49,13 @@ namespace AndroidBot.Listeners
         {
             var activityType = ActivityType.Listening;
             await SetStatus(parameters, activityType);
+        }
+
+        [ReflectiveCommand(nameof(DebugResponseConfiguration.Current.ModCleaningAliases))]
+        public async Task CleanMods(CommandParameters parameters)
+        {
+            CrudeModdingStorage.Current = new CrudeModdingStorage();
+            await parameters.Android.GetListener<CrudeModListener>().SaveToDisk();
         }
 
         [Command]
@@ -74,13 +80,13 @@ namespace AndroidBot.Listeners
                     else
                     {
                         duration = TimeSpan.FromMinutes(parsedNumber);
-                        await parameters.SocketMessage.Channel.SendMessageAsync("i don't know what unit of time that is, so i'll do minutes");
+                        await parameters.SocketMessage.Channel.SendMessageAsync(DebugResponseConfiguration.Current.MinuteUnitFallbackResponse.PickRandom());
                         await Task.Delay(TimeSpan.FromSeconds(0.5f));
                     }
                 }
                 catch (Exception)
                 {
-                    await parameters.SocketMessage.Channel.SendMessageAsync(string.Format("i don't know what \"{0}\" means, so I will fall back to the default of 15 minutes", match.Value));
+                    await parameters.SocketMessage.Channel.SendMessageAsync(string.Format(DebugResponseConfiguration.Current.FifteenMinuteFallbackResponse.PickRandom(), match.Value));
                     await Task.Delay(TimeSpan.FromSeconds(0.5f));
                 }
             }
@@ -111,7 +117,7 @@ namespace AndroidBot.Listeners
             var matches = Regex.Matches(parameters.SocketMessage.Content, "<@(.*?)>");
             if (!matches.Any())
             {
-                await parameters.SocketMessage.Channel.SendMessageAsync("you didn't specify any users");
+                await parameters.SocketMessage.Channel.SendMessageAsync(DebugResponseConfiguration.Current.NoUserSpecifiedResponse.PickRandom());
                 return;
             }
 
@@ -131,7 +137,7 @@ namespace AndroidBot.Listeners
                 }
             }
 
-            string message = (muted ? "muting " : "unmuting ") + string.Join(", ", usersToMute.Select(u => u.Username));
+            string message = (muted ? DebugResponseConfiguration.Current.MutingNotification.PickRandom() : DebugResponseConfiguration.Current.UnmutingNotification.PickRandom()) + string.Join(", ", usersToMute.Select(u => u.Username));
             foreach (var user in usersToMute)
                 try
                 {
