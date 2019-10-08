@@ -10,6 +10,8 @@ namespace AndroidBot
         [NonSerialized]
         public static DebugResponseConfiguration Current;
 
+        public float MaxWaitingTimeInSeconds;
+
         public string[] Prefixes;
         public string[] Names;
         public string[] Suffixes;

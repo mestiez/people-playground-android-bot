@@ -17,8 +17,7 @@ namespace AndroidBot.Listeners
         private List<string> generatedTriggers = new List<string>();
 
         private readonly List<CommandReference> commands = new List<CommandReference>();
-        private bool isWaitingForCommand;
-        private ulong waitingFor;
+        private Dictionary<ulong, DateTime> waitingForMap = new Dictionary<ulong, DateTime>();
 
         public async override Task Initialise()
         {
@@ -96,11 +95,16 @@ namespace AndroidBot.Listeners
         {
             string content = arg.Content.ToLower().Trim().Normalize();
 
-            if (isWaitingForCommand && waitingFor == arg.Author.Id)
+            if (waitingForMap.TryGetValue(arg.Author.Id, out var date))
             {
-                isWaitingForCommand = false;
-                await handleCommand(content);
-                return;
+                if ((DateTime.Now - date).TotalSeconds <= DebugResponseConfiguration.Current.MaxWaitingTimeInSeconds)
+                {
+                    waitingForMap.Remove(arg.Author.Id);
+                    await handleCommand(content);
+                    return;
+                }
+                else
+                    waitingForMap.Remove(arg.Author.Id);
             }
 
             foreach (string trigger in generatedTriggers)
@@ -111,7 +115,6 @@ namespace AndroidBot.Listeners
                 if (content.Trim().Length == 0)
                 {
                     // user just addressed the bot, so their next message is a command
-                    Console.WriteLine("Waiting for command...");
                     await WaitForNextCommand(arg);
                     return;
                 }
@@ -133,9 +136,12 @@ namespace AndroidBot.Listeners
 
         private async Task WaitForNextCommand(SocketMessage arg)
         {
-            waitingFor = arg.Author.Id;
+            if (waitingForMap.ContainsKey(arg.Author.Id))
+                waitingForMap[arg.Author.Id] = DateTime.Now;
+            else
+                waitingForMap.Add(arg.Author.Id, DateTime.Now);
+
             await arg.Channel.SendMessageAsync(DebugResponseConfiguration.Current.TaskAwaitResponses.PickRandom());
-            isWaitingForCommand = true;
         }
 
         private async Task Execute(string contentWithoutPrefix, SocketMessage message, Android android)
