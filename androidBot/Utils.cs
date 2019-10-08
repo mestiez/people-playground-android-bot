@@ -25,7 +25,7 @@ namespace AndroidBot
             bool u = permissions.Users.Contains(Server.Users.Any) || permissions.Users.Contains(user);
             bool r = permissions.Roles.Contains(Server.Roles.Any) || permissions.Roles.Any(i => roles.Any(role => role.Id == i));
 
-            return c && (u || r);
+            return c && u && r;
         }
     }
 }

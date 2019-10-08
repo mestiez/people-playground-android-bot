@@ -33,7 +33,7 @@ namespace AndroidBot.Listeners
                 const string hBreak = "<hr>";
                 var entry = $"<br><b>{violation.GetType().Name} at {DateTime.Now.ToString()} by {arg.Author.Username}({arg.Author.Discriminator})</b><br>{arg.Content}<br>{hBreak}";
                 Console.WriteLine(entry);
-                File.AppendAllTextAsync(Android.Path + Filename, entry);
+                await File.AppendAllTextAsync(Android.Path + Filename, entry);
             }
 
             await Task.CompletedTask;

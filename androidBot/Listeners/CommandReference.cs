@@ -5,22 +5,26 @@ using System.Linq;
 
 namespace AndroidBot.Listeners
 {
-    public partial class DebugListener
+    public struct CommandReference
     {
-        public struct CommandReference
+        public string[] Aliases;
+        public Delegate Delegate;
+        public IPermissions[] Permissions;
+
+        public CommandReference(string[] aliases, Delegate @delegate, IPermissions[] permissions)
         {
-            public string[] Aliases;
-            public Delegate Delegate;
-            public IPermissions[] Permissions;
+            Aliases = aliases;
+            Delegate = @delegate;
+            Permissions = permissions;
+        }
 
-            public CommandReference(string[] aliases, Delegate @delegate, IPermissions[] permissions)
+        public bool IsAuthorised(ulong channel, ulong user, IEnumerable<IRole> roles)
+        {
+            return Permissions.All(p =>
             {
-                Aliases = aliases;
-                Delegate = @delegate;
-                Permissions = permissions;
-            }
-
-            public bool IsAuthorised(ulong channel, ulong user, IEnumerable<IRole> roles) => Permissions.All(p => Utils.IsAuthorised(p, channel, user, roles));
+                var auth = Utils.IsAuthorised(p, channel, user, roles);
+                return auth;
+            });
         }
     }
 }

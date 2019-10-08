@@ -64,7 +64,8 @@ namespace AndroidBot
 
         private async Task MessageReceived(SocketMessage arg)
         {
-            Console.WriteLine("Message received");
+            if (arg.Author.Id == Client.CurrentUser.Id)
+                return;
 
             foreach (MessageListener listener in Listeners)
             {

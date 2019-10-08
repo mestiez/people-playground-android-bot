@@ -8,10 +8,11 @@ using System.Threading.Tasks;
 
 namespace AndroidBot.Listeners
 {
-    public partial class DebugListener : MessageListener
+    public class DebugListener : MessageListener
     {
         public override ulong[] Channels => new[] { Server.Channels.Any };
-        public override ulong[] Roles => new[] { Server.Roles.Moderators, Server.Roles.Administrators, Server.Roles.Developers, Server.Roles.Bots };
+        public override ulong[] Roles => new[] { Server.Roles.Any };
+        public override ulong[] Users => new[] { Server.Users.Any };
 
         private List<string> generatedTriggers = new List<string>();
 
@@ -60,27 +61,34 @@ namespace AndroidBot.Listeners
 
         private void LoadCommands()
         {
-            var type = GetType();
-            var methods = type.GetMethods();
-            foreach (var method in methods)
+            var allTypes = GetType().Assembly.GetTypes();
+
+            foreach (var type in allTypes)
             {
-                var commandAttributes = method.GetCustomAttributes(typeof(CommandAttribute), true) as CommandAttribute[];
-                if (!commandAttributes.Any()) continue;
+                var containerAttributes = type.GetCustomAttributes(typeof(CommandContainerAttribute), true) as CommandContainerAttribute[];
+                if (!containerAttributes.Any()) continue;
+                var methods = type.GetMethods();
 
-                foreach (var cmdA in commandAttributes)
-                    cmdA.Initialise();
+                foreach (var method in methods)
+                {
+                    var commandAttributes = method.GetCustomAttributes(typeof(CommandAttribute), true) as CommandAttribute[];
+                    if (!commandAttributes.Any()) continue;
 
-                CommandReference reference = new CommandReference();
+                    foreach (var cmdA in commandAttributes)
+                        cmdA.Initialise();
 
-                string name = method.Name.ToLower();
-                List<string> aliases = new List<string>(commandAttributes.SelectMany(c => c.Aliases).Append(name));
+                    CommandReference reference = new CommandReference();
 
-                reference.Aliases = aliases.ToArray();
-                reference.Permissions = commandAttributes;
-                reference.Delegate = Delegate.CreateDelegate(typeof(Func<CommandParameters, Task>), this, method);
+                    string name = method.Name.ToLower();
+                    List<string> aliases = new List<string>(commandAttributes.SelectMany(c => c.Aliases).Append(name));
 
-                commands.Add(reference);
-                Console.WriteLine("Command registered: " + name);
+                    reference.Aliases = aliases.ToArray();
+                    reference.Permissions = containerAttributes.Cast<IPermissions>().Concat(commandAttributes).ToArray();
+                    reference.Delegate = Delegate.CreateDelegate(typeof(Func<CommandParameters, Task>), method);
+
+                    commands.Add(reference);
+                    Console.WriteLine("Command registered: " + name);
+                }
             }
         }
 
@@ -102,7 +110,7 @@ namespace AndroidBot.Listeners
                 content = content.Remove(0, trigger.Length);
                 if (content.Trim().Length == 0)
                 {
-                    // user just addressed the bot, so their next message is a command unless otherwise is specified
+                    // user just addressed the bot, so their next message is a command
                     Console.WriteLine("Waiting for command...");
                     await WaitForNextCommand(arg);
                     return;
