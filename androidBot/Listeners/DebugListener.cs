@@ -126,10 +126,8 @@ namespace AndroidBot.Listeners
                     Console.WriteLine("Empty command...");
                     return;
                 }
-                string[] parts = content.Split(' ').Where(e => !string.IsNullOrWhiteSpace(e)).ToArray();
-                string command = parts[0];
-                string[] arguments = parts.Skip(1).ToArray();
-                await Execute(command, new CommandParameters(arg, android, arguments));
+
+                await Execute(contentWithoutPrefix.TrimStart(), arg, android);
             }
         }
 
@@ -140,17 +138,24 @@ namespace AndroidBot.Listeners
             isWaitingForCommand = true;
         }
 
-        private async Task Execute(string command, CommandParameters parameters)
+        private async Task Execute(string contentWithoutPrefix, SocketMessage message, Android android)
         {
             foreach (CommandReference commandReference in commands)
-            {
-                if (!commandReference.Aliases.Contains(command)) continue;
+                foreach (string alias in commandReference.Aliases)
+                {
+                    if (!contentWithoutPrefix.StartsWith(alias)) continue;
+                    contentWithoutPrefix = contentWithoutPrefix.Remove(0, alias.Length).Trim();
 
-                var m = parameters.SocketMessage;
-                if (!commandReference.IsAuthorised(m.Channel.Id, m.Author.Id, parameters.Android.MainGuild.GetUser(m.Author.Id).Roles)) continue;
+                    string[] parts = contentWithoutPrefix.Split(' ').Where(e => !string.IsNullOrWhiteSpace(e)).ToArray();
+                    string[] arguments = parts.ToArray();
 
-                await (commandReference.Delegate.DynamicInvoke(parameters) as Task);
-            }
+                    CommandParameters parameters = new CommandParameters(message, android, arguments);
+
+                    if (!commandReference.IsAuthorised(message.Channel.Id, message.Author.Id, parameters.Android.MainGuild.GetUser(message.Author.Id).Roles)) continue;
+                    await (commandReference.Delegate.DynamicInvoke(parameters) as Task);
+
+                    break;
+                }
 
             await Task.CompletedTask;
         }

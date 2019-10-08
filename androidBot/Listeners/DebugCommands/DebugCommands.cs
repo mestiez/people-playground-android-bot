@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace AndroidBot.Listeners
 {
-    [CommandContainer(roles: new[] { Server.Roles.Developers })]
+    [CommandContainer(roles: new[] { Server.Roles.Administrators, Server.Roles.Developers, Server.Roles.Moderators })]
     public struct DebugCommands
     {
         [Command]
@@ -23,7 +23,7 @@ namespace AndroidBot.Listeners
                 Select(l => l.GetType().Name)));
         }
 
-        [ReflectiveCommand(nameof(DebugResponseConfiguration.Current.ModCleaningAliases))]
+        [ReflectiveCommand(nameof(DebugResponseConfiguration.Current.ModCleaningAliases), roles: new[] { Server.Roles.Developers })]
         public static async Task CleanMods(CommandParameters parameters)
         {
             CrudeModdingStorage.Current = new CrudeModdingStorage();

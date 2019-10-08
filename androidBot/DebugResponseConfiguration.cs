@@ -28,5 +28,8 @@ namespace AndroidBot
         public string[] UnmutingNotification;
 
         public string[] ModCleaningAliases;
+
+        public string[] RoadmapAliases;
+        public string RoadmapLink;
     }
 }
