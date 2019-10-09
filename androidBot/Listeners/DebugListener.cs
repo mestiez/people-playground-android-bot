@@ -111,13 +111,19 @@ namespace AndroidBot.Listeners
             {
                 if (!content.StartsWith(trigger)) continue;
 
-                content = content.Remove(0, trigger.Length);
-                if (content.Trim().Length == 0)
+                content = content.Remove(0, trigger.Length).Trim();
+
+                if (content.Length == 0)
                 {
-                    // user just addressed the bot, so their next message is a command
-                    await WaitForNextCommand(arg);
+                    if (waitingForMap.ContainsKey(arg.Author.Id))
+                        waitingForMap[arg.Author.Id] = DateTime.Now;
+                    else
+                        waitingForMap.Add(arg.Author.Id, DateTime.Now);
+
+                    await arg.Channel.SendMessageAsync(DebugResponseConfiguration.Current.TaskAwaitResponses.PickRandom());
                     return;
                 }
+
                 await handleCommand(content);
                 return;
             }
@@ -130,29 +136,19 @@ namespace AndroidBot.Listeners
                     return;
                 }
 
-                await Execute(contentWithoutPrefix.TrimStart(), arg, android);
+                await Execute(contentWithoutPrefix, arg, android);
             }
         }
 
-        private async Task WaitForNextCommand(SocketMessage arg)
-        {
-            if (waitingForMap.ContainsKey(arg.Author.Id))
-                waitingForMap[arg.Author.Id] = DateTime.Now;
-            else
-                waitingForMap.Add(arg.Author.Id, DateTime.Now);
-
-            await arg.Channel.SendMessageAsync(DebugResponseConfiguration.Current.TaskAwaitResponses.PickRandom());
-        }
-
-        private async Task Execute(string contentWithoutPrefix, SocketMessage message, Android android)
+        private async Task Execute(string content, SocketMessage message, Android android)
         {
             foreach (CommandReference commandReference in commands)
                 foreach (string alias in commandReference.Aliases)
                 {
-                    if (!contentWithoutPrefix.StartsWith(alias)) continue;
-                    contentWithoutPrefix = contentWithoutPrefix.Remove(0, alias.Length).Trim();
+                    if (!content.StartsWith(alias)) continue;
+                    content = content.Remove(0, alias.Length).Trim();
 
-                    string[] parts = contentWithoutPrefix.Split(' ').Where(e => !string.IsNullOrWhiteSpace(e)).ToArray();
+                    string[] parts = content.Split(' ').Where(e => !string.IsNullOrWhiteSpace(e)).ToArray();
                     string[] arguments = parts.ToArray();
 
                     CommandParameters parameters = new CommandParameters(message, android, arguments);
