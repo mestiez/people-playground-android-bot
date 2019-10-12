@@ -19,7 +19,7 @@ namespace AndroidBot.Listeners
         private readonly List<CommandReference> commands = new List<CommandReference>();
         private Dictionary<ulong, DateTime> waitingForMap = new Dictionary<ulong, DateTime>();
 
-        public async override Task Initialise()
+        public async override Task Initialise(Android android)
         {
             await LoadConfiguration();
             LoadCommands();
@@ -27,11 +27,6 @@ namespace AndroidBot.Listeners
             LoadTriggers();
             Console.WriteLine(string.Join("\n", generatedTriggers));
             Console.WriteLine("Android is addressable with a total of " + generatedTriggers.Count + " different phrases");
-        }
-
-        public async override Task Stop()
-        {
-            await Task.CompletedTask;
         }
 
         private async Task LoadConfiguration()

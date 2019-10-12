@@ -33,5 +33,8 @@ namespace AndroidBot
 
         public string[] RoadmapAliases;
         public string RoadmapLink;
+
+        public string[] ChangelogAliases;
+        public string ChangelogLink;
     }
 }

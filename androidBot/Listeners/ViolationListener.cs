@@ -16,7 +16,7 @@ namespace AndroidBot.Listeners
         public const string Filename = "violation_log.html";
         public HashSet<IViolation> Violations { get; } = new HashSet<IViolation>();
 
-        public override async Task Initialise()
+        public override async Task Initialise(Android android)
         {
             Violations.Add(new MentionViolation(Server.Users.zooi));
             await Task.CompletedTask;
@@ -36,11 +36,6 @@ namespace AndroidBot.Listeners
                 await File.AppendAllTextAsync(Android.Path + Filename, entry);
             }
 
-            await Task.CompletedTask;
-        }
-
-        public override async Task Stop()
-        {
             await Task.CompletedTask;
         }
     }

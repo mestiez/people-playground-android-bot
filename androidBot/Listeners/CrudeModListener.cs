@@ -17,6 +17,8 @@ namespace AndroidBot.Listeners
         public override ulong[] Roles => new[] { Server.Roles.Any };
         public override ulong[] Users => new[] { Server.Users.Any };
 
+        public const string ModFileEnd = ".dll";
+
         public readonly string[] ModReleasePrefixes = new[] {
             "mod",
             "mod:",
@@ -25,7 +27,7 @@ namespace AndroidBot.Listeners
             "mod ;",
         };
 
-        public override async Task Initialise()
+        public override async Task Initialise(Android android)
         {
             await LoadFromDisk();
             await Task.CompletedTask;
@@ -41,13 +43,20 @@ namespace AndroidBot.Listeners
                 if (!simplifiedContent.StartsWith(prefix)) continue;
                 var strippedDown = simplifiedContent.Remove(0, prefix.Length);
                 string modName = "";
+
                 try
                 {
-                    modName = strippedDown.Substring(0, strippedDown.IndexOf("\n"));
+                    modName = strippedDown.Substring(0, strippedDown.IndexOf("\n")).Trim(); ;
                 }
                 catch (Exception)
                 {
                     await arg.Channel.SendMessageAsync("you need to give your mod a description or something under it");
+                    break;
+                }
+
+                if (!arg.Attachments.Any(attachment => attachment.Filename.EndsWith(ModFileEnd)))
+                {
+                    await arg.Channel.SendMessageAsync("mods have to provide a download link");
                     break;
                 }
 
@@ -75,11 +84,6 @@ namespace AndroidBot.Listeners
             await Task.CompletedTask;
         }
 
-        public override async Task Stop()
-        {
-            await SaveToDisk();
-        }
-
         public async Task LoadFromDisk()
         {
             try
@@ -102,7 +106,7 @@ namespace AndroidBot.Listeners
         {
             try
             {
-                var raw = JsonConvert.SerializeObject(CrudeModdingStorage.Current);
+                var raw = JsonConvert.SerializeObject(CrudeModdingStorage.Current, Formatting.Indented);
                 await File.WriteAllTextAsync(Android.Path + CrudeModdingStorage.Path, raw);
             }
             catch (Exception e)

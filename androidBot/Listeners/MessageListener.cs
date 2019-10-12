@@ -9,8 +9,7 @@ namespace AndroidBot.Listeners
         public virtual ulong[] Users { get; private set; } = {  };
         public virtual ulong[] Channels { get; private set; } = {  };
 
-        public abstract Task Initialise();
+        public abstract Task Initialise(Android android);
         public abstract Task OnMessage(SocketMessage arg, Android android);
-        public abstract Task Stop();
     }
 }

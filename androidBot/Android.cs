@@ -50,7 +50,7 @@ namespace AndroidBot
 
             foreach (MessageListener listener in Listeners)
             {
-                await listener.Initialise();
+                await listener.Initialise(this);
                 Console.WriteLine(listener.GetType().Name + " initialised");
             }
 
