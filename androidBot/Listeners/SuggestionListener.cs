@@ -158,9 +158,9 @@ namespace AndroidBot.Listeners
                 return $"```{ellipsed}```{Score} points";
             }
 
-            public string ToString(Android android)
+            public async Task<string> ToString(Android android, bool accurateName)
             {
-                var author =  android.MainGuild.GetUser(AuthorId)?.Username ?? "Unknown user";
+                var author = accurateName ? ((await android.Client.Rest.GetUserAsync(AuthorId))?.Username ?? "Unknown user") : (android.MainGuild.GetUser(AuthorId)?.Username ?? "unknown user");
                 return $"{this}\nby {author}";
             }
         }

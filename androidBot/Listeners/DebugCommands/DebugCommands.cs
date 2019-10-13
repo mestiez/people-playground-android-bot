@@ -14,7 +14,7 @@ namespace AndroidBot.Listeners
             await parameters.SocketMessage.Channel.SendMessageAsync("pong");
         }
 
-        [Command(new[] { "i love you", "love you", "ilu", "<3" }, users: new[] { Server.Users.zooi })]
+        [Command(new[] { "i love you", "love you", "ilu", "<3" }, users: new[] { Server.Users.zooi, Server.Users.Vincentmario })]
         public static async Task Love(CommandParameters parameters)
         {
             await parameters.SocketMessage.Channel.SendMessageAsync("<3");
@@ -28,6 +28,12 @@ namespace AndroidBot.Listeners
                 parameters.Android.Listeners.
                 Where(l => l.Channels.Contains(parameters.SocketMessage.Channel.Id) || l.Channels.Contains(Server.Channels.Any)).
                 Select(l => l.GetType().Name)));
+        }
+
+        [Command]
+        public static async Task Violations(CommandParameters parameters)
+        {
+            await parameters.SocketMessage.Channel.SendMessageAsync(string.Join("\n", parameters.Android.GetListener<ViolationListener>().Violations));
         }
 
         [Command(default, roles: new[] { Server.Roles.Developers })]
@@ -49,6 +55,7 @@ namespace AndroidBot.Listeners
         {
             if (!int.TryParse(parameters.Arguments[0], out int count)) return;
             Order order = Order.Best;
+            bool fast = parameters.Arguments.Any(c => c.Trim() == "fast");
 
             switch (parameters.Arguments[1])
             {
@@ -74,9 +81,9 @@ namespace AndroidBot.Listeners
 
             var suggestions = parameters.Android.GetListener<SuggestionListener>().Suggestions;
 
-            if (count > Math.Min(suggestions.Count, 25))
+            if (count > Math.Min(suggestions.Count, 10))
             {
-                count = Math.Min(suggestions.Count, 25);
+                count = Math.Min(suggestions.Count, 10);
                 await parameters.SocketMessage.Channel.SendMessageAsync($"i can only show {count} entries");
             }
 
@@ -87,7 +94,12 @@ namespace AndroidBot.Listeners
             else
                 topSuggestions = values.OrderByDescending(s => s.Score).Take(count);
 
-            await parameters.SocketMessage.Channel.SendMessageAsync($"the top {count} {order.ToString().ToLower()} suggestions are:{string.Join("\n\n", topSuggestions.Select(s => s.ToString(parameters.Android)))}");
+            await parameters.SocketMessage.Channel.SendMessageAsync($"the top {count} {order.ToString().ToLower()} suggestions are:");
+            foreach (var suggestion in topSuggestions)
+            {
+                string message = await suggestion.ToString(parameters.Android, !fast);
+                await parameters.SocketMessage.Channel.SendMessageAsync($"{message}\n\n");
+            }
         }
 
         [ReflectiveCommand(nameof(DebugResponseConfiguration.Current.ModCleaningAliases), roles: new[] { Server.Roles.Developers })]

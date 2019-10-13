@@ -16,7 +16,7 @@ namespace AndroidBot.Listeners
             TimeSpan duration = TimeSpan.FromMinutes(15);
 
             //find a specified time
-            var match = Regex.Match(parameters.SocketMessage.Content, @"(for)\s(\d*)\s(\w*\b)");
+            var match = Regex.Match(parameters.SocketMessage.Content, @"(for)\s(\d+)\s*(\w*\b)");
             if (match.Success)
             {
                 try
@@ -29,18 +29,34 @@ namespace AndroidBot.Listeners
                         duration = TimeSpan.FromMinutes(parsedNumber);
                     else if (match.Value.Contains("hour"))
                         duration = TimeSpan.FromHours(parsedNumber);
+                    else if (match.Value.Contains("day"))
+                        duration = TimeSpan.FromDays(parsedNumber);
+                    else if (match.Value.Contains("week"))
+                        duration = TimeSpan.FromDays(parsedNumber * 7);
+                    else if (match.Value.Contains("month"))
+                        duration = TimeSpan.FromDays(parsedNumber * 30);
+                    else if (match.Value.Contains("year"))
+                        duration = TimeSpan.FromDays(parsedNumber * 365);
+                    else if (match.Value.Contains("decade"))
+                        duration = TimeSpan.FromDays(parsedNumber * 3650);
+                    else if (match.Value.Contains("centur"))
+                        duration = TimeSpan.FromDays(parsedNumber * 36500);
+                    else if (match.Value.Contains("millenni"))
+                        duration = TimeSpan.FromDays(parsedNumber * 365000);
                     else
                     {
                         duration = TimeSpan.FromMinutes(parsedNumber);
                         await parameters.SocketMessage.Channel.SendMessageAsync(DebugResponseConfiguration.Current.MinuteUnitFallbackResponse.PickRandom());
-                        await Task.Delay(TimeSpan.FromSeconds(0.5f));
                     }
                 }
                 catch (Exception)
                 {
                     await parameters.SocketMessage.Channel.SendMessageAsync(string.Format(DebugResponseConfiguration.Current.FifteenMinuteFallbackResponse.PickRandom(), match.Value));
-                    await Task.Delay(TimeSpan.FromSeconds(0.5f));
                 }
+            }
+            else
+            {
+                await parameters.SocketMessage.Channel.SendMessageAsync("no duration specified, falling back to 15 minutes");
             }
 
             await SetMuteStatus(parameters, true);

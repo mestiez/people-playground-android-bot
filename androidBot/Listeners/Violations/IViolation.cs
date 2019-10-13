@@ -6,6 +6,6 @@ namespace AndroidBot.Listeners
     public interface IViolation
     {
         bool Violates(SocketMessage message, Android android);
-        Task Consequence();
+        Task Consequence(SocketMessage message, Android android);
     }
 }
