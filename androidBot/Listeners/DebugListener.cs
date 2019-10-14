@@ -74,7 +74,10 @@ namespace AndroidBot.Listeners
                     CommandReference reference = new CommandReference();
 
                     string name = method.Name.ToLower();
-                    List<string> aliases = new List<string>(commandAttributes.SelectMany(c => c.Aliases).Append(name));
+                    List<string> aliases = new List<string>(commandAttributes.SelectMany(c => c.Aliases));
+
+                    if (commandAttributes.Any(c => c.IncludeMethodName))
+                        aliases.Add(name);
 
                     reference.Aliases = aliases.ToArray();
                     reference.Permissions = containerAttributes.Cast<IPermissions>().Concat(commandAttributes).ToArray();

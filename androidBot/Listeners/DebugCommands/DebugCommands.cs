@@ -14,12 +14,6 @@ namespace AndroidBot.Listeners
             await parameters.SocketMessage.Channel.SendMessageAsync("pong");
         }
 
-        [Command(new[] { "i love you", "love you", "ilu", "<3" }, users: new[] { Server.Users.zooi, Server.Users.Vincentmario })]
-        public static async Task Love(CommandParameters parameters)
-        {
-            await parameters.SocketMessage.Channel.SendMessageAsync("<3");
-        }
-
         [Command]
         public static async Task List(CommandParameters parameters)
         {

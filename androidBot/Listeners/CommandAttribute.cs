@@ -4,12 +4,13 @@ namespace AndroidBot.Listeners
 {
     public class CommandAttribute : Attribute, IPermissions
     {
-        public CommandAttribute(string[] aliases = null, ulong[] channels = null, ulong[] users = null, ulong[] roles = null)
+        public CommandAttribute(string[] aliases = null, ulong[] channels = null, ulong[] users = null, ulong[] roles = null, bool includeMethodName = true)
         {
             Aliases = aliases ?? Array.Empty<string>();
             Channels = channels ?? new[] { Server.Channels.Any };
             Users = users ?? new[] { Server.Users.Any };
             Roles = roles ?? new[] { Server.Users.Any };
+            IncludeMethodName = includeMethodName;
         }
 
         public CommandAttribute()
@@ -21,6 +22,7 @@ namespace AndroidBot.Listeners
         }
 
         public string[] Aliases { get; set; }
+        public bool IncludeMethodName { get; set; } = true;
         public virtual ulong[] Channels { get; protected set; } = { Server.Channels.Any };
         public virtual ulong[] Users { get; protected set; } = { Server.Users.Any };
         public virtual ulong[] Roles { get; protected set; } = { Server.Users.Any };
