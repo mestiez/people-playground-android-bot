@@ -11,7 +11,7 @@ namespace AndroidBot.Listeners
     public class DebugListener : MessageListener
     {
         public override ulong[] Channels => new[] { Server.Channels.Any };
-        public override ulong[] Roles => new[] { Server.Roles.Any };
+        public override ulong[] Roles => new[] { Server.Roles.Administrators, Server.Roles.Developers, Server.Roles.Moderators };
         public override ulong[] Users => new[] { Server.Users.Any };
 
         private List<string> generatedTriggers = new List<string>();
@@ -23,10 +23,9 @@ namespace AndroidBot.Listeners
         {
             await LoadConfiguration();
             LoadCommands();
-
             LoadTriggers();
-            Console.WriteLine(string.Join("\n", generatedTriggers));
-            Console.WriteLine("Android is addressable with a total of " + generatedTriggers.Count + " different phrases");
+
+            Console.WriteLine("Trigger count: " + generatedTriggers.Count);
         }
 
         private async Task LoadConfiguration()

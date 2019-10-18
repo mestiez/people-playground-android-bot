@@ -49,7 +49,6 @@ namespace AndroidBot.Listeners
         {
             if (!int.TryParse(parameters.Arguments[0], out int count)) return;
             Order order = Order.Best;
-            bool fast = parameters.Arguments.Any(c => c.Trim() == "fast");
 
             switch (parameters.Arguments[1])
             {
@@ -91,7 +90,7 @@ namespace AndroidBot.Listeners
             await parameters.SocketMessage.Channel.SendMessageAsync($"the top {count} {order.ToString().ToLower()} suggestions are:");
             foreach (var suggestion in topSuggestions)
             {
-                string message = await suggestion.ToString(parameters.Android, !fast);
+                string message = await suggestion.ToString(parameters.Android);
                 await parameters.SocketMessage.Channel.SendMessageAsync($"{message}\n\n");
             }
         }

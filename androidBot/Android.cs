@@ -22,6 +22,7 @@ namespace AndroidBot
 
         public SocketGuild MainGuild => Client.GetGuild(603649973510340619);
         public static string Path { get; private set; }
+        public static MuteManager MuteManager { get; private set; }
 
         public async Task MainAsync()
         {
@@ -37,11 +38,15 @@ namespace AndroidBot
                 Path += "\\";
             }
 
+
             Client.Log += Log;
             Client.MessageReceived += MessageReceived;
 
             await Client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("android-token", EnvironmentVariableTarget.Machine));
             await Client.StartAsync();
+
+            MuteManager = new MuteManager(this);
+            await MuteManager.Initialise();
 
             Listeners.Add(new DebugListener());
             Listeners.Add(new ViolationListener());

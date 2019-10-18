@@ -25,6 +25,8 @@ namespace AndroidBot
 
             public const ulong BotTesting = 622823053444775956;
             public const ulong Secret = 623035131845672990;
+
+            public const ulong VC = 633437651491356682;
         }
 
         public struct Users
@@ -36,6 +38,7 @@ namespace AndroidBot
             public const ulong Koof = 298068138698735617;
             public const ulong Dikkiedik = 187872460232851467;
             public const ulong Orongto = 150739418481688576;
+            public const ulong CuteAnimeGirl = 332938473323626497;
         }
 
         public struct Roles

@@ -20,7 +20,7 @@ namespace AndroidBot.Listeners
         public const string ModFileEnd = ".dll";
 
         public readonly string[] ModReleasePrefixes = new[] {
-            "mod",
+            "mod ",
             "mod:",
             "mod;",
             "mod :",

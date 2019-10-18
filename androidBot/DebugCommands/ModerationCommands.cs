@@ -15,7 +15,6 @@ namespace AndroidBot.Listeners
         {
             TimeSpan duration = TimeSpan.FromMinutes(15);
 
-            //find a specified time
             var match = Regex.Match(parameters.SocketMessage.Content, @"(for)\s(\d+)\s*(\w*\b)");
             if (match.Success)
             {
@@ -33,16 +32,6 @@ namespace AndroidBot.Listeners
                         duration = TimeSpan.FromDays(parsedNumber);
                     else if (match.Value.Contains("week"))
                         duration = TimeSpan.FromDays(parsedNumber * 7);
-                    else if (match.Value.Contains("month"))
-                        duration = TimeSpan.FromDays(parsedNumber * 30);
-                    else if (match.Value.Contains("year"))
-                        duration = TimeSpan.FromDays(parsedNumber * 365);
-                    else if (match.Value.Contains("decade"))
-                        duration = TimeSpan.FromDays(parsedNumber * 3650);
-                    else if (match.Value.Contains("centur"))
-                        duration = TimeSpan.FromDays(parsedNumber * 36500);
-                    else if (match.Value.Contains("millenni"))
-                        duration = TimeSpan.FromDays(parsedNumber * 365000);
                     else
                     {
                         duration = TimeSpan.FromMinutes(parsedNumber);
@@ -59,12 +48,7 @@ namespace AndroidBot.Listeners
                 await parameters.SocketMessage.Channel.SendMessageAsync("no duration specified, falling back to 15 minutes");
             }
 
-            await SetMuteStatus(parameters, true);
-            _ = Task.Run(async () =>
-            {
-                await Task.Delay(duration);
-                await SetMuteStatus(parameters, false);
-            });
+            await ParseAndMute(parameters, true, duration);
         }
 
         [Command]
@@ -76,12 +60,11 @@ namespace AndroidBot.Listeners
         [Command]
         public static async Task Unmute(CommandParameters parameters)
         {
-            await SetMuteStatus(parameters, false);
+            await ParseAndMute(parameters, false);
         }
 
-        private static async Task SetMuteStatus(CommandParameters parameters, bool muted)
+        private static async Task ParseAndMute(CommandParameters parameters, bool muted, TimeSpan duration = default)
         {
-            var mutedRole = parameters.Android.MainGuild.GetRole(Server.Roles.Muted);
             var matches = Regex.Matches(parameters.SocketMessage.Content, "<@(.*?)>");
             if (!matches.Any())
             {
@@ -89,7 +72,7 @@ namespace AndroidBot.Listeners
                 return;
             }
 
-            List<SocketGuildUser> usersToMute = new List<SocketGuildUser>();
+            List<SocketGuildUser> relevantUsers = new List<SocketGuildUser>();
 
             foreach (Match match in matches)
             {
@@ -97,7 +80,7 @@ namespace AndroidBot.Listeners
                 if (!ulong.TryParse(toParse, out ulong result)) continue;
                 try
                 {
-                    usersToMute.Add(parameters.Android.MainGuild.GetUser(result));
+                    relevantUsers.Add(parameters.Android.MainGuild.GetUser(result));
                 }
                 catch (Exception)
                 {
@@ -105,21 +88,13 @@ namespace AndroidBot.Listeners
                 }
             }
 
-            string message = (muted ? DebugResponseConfiguration.Current.MutingNotification.PickRandom() : DebugResponseConfiguration.Current.UnmutingNotification.PickRandom()) + string.Join(", ", usersToMute.Select(u => u.Username));
-            foreach (var user in usersToMute)
-                try
-                {
-                    if (muted)
-                        await user.AddRoleAsync(mutedRole);
-                    else
-                        await user.RemoveRoleAsync(mutedRole);
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine("Could not set mute status on " + user.Username);
-                }
-
-            await parameters.SocketMessage.Channel.SendMessageAsync(message);
+            foreach (var user in relevantUsers)
+            {
+                if (muted)
+                    MuteManager.Mute(user.Id, parameters.SocketMessage.Channel.Id, duration);
+                else
+                    MuteManager.Unmute(user.Id);
+            }
         }
     }
 }
