@@ -39,7 +39,8 @@ namespace AndroidBot.Listeners
                 suggestion.Upvotes--;
             else if (reaction.Emote.Equals(Downvote))
                 suggestion.Downvotes--;
-            await Save();
+            Save();
+            await Task.CompletedTask;
         }
 
         private async Task OnReactionAdd(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
@@ -50,7 +51,9 @@ namespace AndroidBot.Listeners
                 suggestion.Upvotes++;
             else if (reaction.Emote.Equals(Downvote))
                 suggestion.Downvotes++;
-            await Save();
+
+            Save();
+            await Task.CompletedTask;
         }
 
         public override async Task OnMessage(SocketMessage arg, Android android)
@@ -65,7 +68,7 @@ namespace AndroidBot.Listeners
             RestUserMessage restMessage = (RestUserMessage)await arg.Channel.GetMessageAsync(arg.Id);
             await restMessage.AddReactionsAsync(new IEmote[] { Upvote, Downvote });
             AddSuggestion((IUserMessage)arg, false);
-            await Save();
+            Save();
         }
 
         public async Task Load()
@@ -88,10 +91,10 @@ namespace AndroidBot.Listeners
 
         }
 
-        public async Task Save()
+        public void Save()
         {
             var raw = JsonConvert.SerializeObject(Suggestions ?? new Dictionary<ulong, Suggestion>(), Formatting.Indented);
-            await File.WriteAllTextAsync(FullPath, raw);
+            File.WriteAllText(FullPath, raw);
         }
 
         public async Task GlobalRefresh(Android android, int maxMessages = 1000)
@@ -114,7 +117,7 @@ namespace AndroidBot.Listeners
                 }
             }
 
-            await Save();
+            Save();
         }
 
         public void AddSuggestion(IUserMessage message, bool doReactionCheck = true)

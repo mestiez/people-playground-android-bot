@@ -77,7 +77,7 @@ namespace AndroidBot
                 var guildUser = MainGuild.GetUser(arg.Author.Id);
                 if (!Utils.IsAuthorised(listener, arg.Channel.Id, arg.Author.Id, guildUser.Roles)) continue;
 
-                await listener.OnMessage(arg, this);
+                _ = Task.Run(async () => await listener.OnMessage(arg, this));
             }
         }
 
