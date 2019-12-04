@@ -69,7 +69,6 @@ namespace AndroidBot.Listeners
             if (!IsSuggestion(arg.Content)) return;
 
             RestUserMessage restMessage = (RestUserMessage)await arg.Channel.GetMessageAsync(arg.Id);
-            await restMessage.AddReactionsAsync(new IEmote[] { Upvote, Downvote });
             if (IsDuplicate(arg.Content))
             {
                 await restMessage.Channel.SendMessageAsync("I will respectfully ignore your suggestion because it's been said before.");
@@ -79,7 +78,7 @@ namespace AndroidBot.Listeners
             if (arg.Content.Length > 1024)
                 await restMessage.Channel.SendMessageAsync("A suggestion shouldn't exceed 1024 characters. Try not to group multiple suggestions into a single message.");
 
-
+            await restMessage.AddReactionsAsync(new IEmote[] { Upvote, Downvote });
             AddSuggestion((IUserMessage)arg, false);
             Save();
         }
