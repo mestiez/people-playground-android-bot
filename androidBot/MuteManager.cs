@@ -127,6 +127,7 @@ namespace AndroidBot
 
         private async Task SaveUsers()
         {
+            requireWriteToDisk = false;
             var raw = JsonConvert.SerializeObject(users);
             await File.WriteAllTextAsync(FullPath, raw);
         }

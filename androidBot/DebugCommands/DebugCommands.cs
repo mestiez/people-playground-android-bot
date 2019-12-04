@@ -54,13 +54,16 @@ namespace AndroidBot.Listeners
             {
                 case "worst":
                     order = Order.Worst;
-                    if (parameters.Arguments[2] != "suggestions") return;
+                    if (!parameters.Arguments[2].StartsWith("suggestion")) return;
                     break;
                 case "best":
                     order = Order.Best;
-                    if (parameters.Arguments[2] != "suggestions") return;
+                    if (!parameters.Arguments[2].StartsWith("suggestion")) return;
                     break;
                 case "suggestions":
+                    order = Order.Best;
+                    break;
+                case "suggestion":
                     order = Order.Best;
                     break;
                 default: return;
