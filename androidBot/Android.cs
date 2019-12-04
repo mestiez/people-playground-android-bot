@@ -38,7 +38,6 @@ namespace AndroidBot
                 Path += "\\";
             }
 
-
             Client.Log += Log;
             Client.MessageReceived += MessageReceived;
 

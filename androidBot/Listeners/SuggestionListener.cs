@@ -166,7 +166,11 @@ namespace AndroidBot.Listeners
                 }
             }
 
-            public string FindAuthorName(Android android) => android.MainGuild.GetUser(AuthorId)?.Username ?? "a user that left the server or deleted their account";
+            public string FindAuthorName(Android android)
+            {
+
+                return android.Client.GetUser(AuthorId)?.Username ?? "a user that left the server or deleted their account";
+            }
         }
     }
 }
