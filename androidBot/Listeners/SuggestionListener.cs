@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
+using F23.StringSimilarity;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -22,6 +23,8 @@ namespace AndroidBot.Listeners
 
         public static readonly IEmote Upvote = Server.Emotes.YES;
         public static readonly IEmote Downvote = Server.Emotes.NO;
+
+        private NormalizedLevenshtein Levenshtein = new NormalizedLevenshtein();
 
         public override async Task Initialise(Android android)
         {
@@ -67,8 +70,16 @@ namespace AndroidBot.Listeners
 
             RestUserMessage restMessage = (RestUserMessage)await arg.Channel.GetMessageAsync(arg.Id);
             await restMessage.AddReactionsAsync(new IEmote[] { Upvote, Downvote });
+            if (IsDuplicate(arg.Content))
+            {
+                await restMessage.Channel.SendMessageAsync("I will respectfully ignore your suggestion because it's been said before.");
+                return;
+            }
+
             if (arg.Content.Length > 1024)
                 await restMessage.Channel.SendMessageAsync("A suggestion shouldn't exceed 1024 characters. Try not to group multiple suggestions into a single message.");
+
+
             AddSuggestion((IUserMessage)arg, false);
             Save();
         }
@@ -125,6 +136,13 @@ namespace AndroidBot.Listeners
         public void AddSuggestion(IUserMessage message, bool doReactionCheck = true)
         {
             if (!IsSuggestion(message.Content)) return;
+
+            if (IsDuplicate(message.Content))
+            {
+                Console.WriteLine("Duplicate omitted");
+                return;
+            }
+
             var reactions = message.Reactions;
             var hasUpvotes = reactions.TryGetValue(Upvote, out var upvoteMetadata);
             var hasDownvotes = reactions.TryGetValue(Downvote, out var downvoteMetadata);
@@ -134,6 +152,14 @@ namespace AndroidBot.Listeners
         }
 
         private bool IsSuggestion(string content) => (content.Trim().ToLower().StartsWith("suggestion"));
+
+        private bool IsDuplicate(string suggestion)
+        {
+            return Suggestions.Any(s =>
+            s.Value.Content == suggestion ||
+            Levenshtein.Distance(s.Value.Content, suggestion) < .25
+            );
+        }
 
         [Serializable]
         public class Suggestion
@@ -169,7 +195,7 @@ namespace AndroidBot.Listeners
             public string FindAuthorName(Android android)
             {
 
-                return android.Client.GetUser(AuthorId)?.Username ?? "a user that left the server or deleted their account";
+                return android.MainGuild.GetUser(AuthorId)?.Username ?? "a user that left the server or deleted their account";
             }
         }
     }

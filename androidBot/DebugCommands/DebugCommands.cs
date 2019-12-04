@@ -94,8 +94,9 @@ namespace AndroidBot.Listeners
 
             var builder = new EmbedBuilder();
             builder.Color = Color.Teal;
+            int index = 0;
             foreach (var suggestion in topSuggestions)
-                builder.AddField($"{suggestion.Score} points by {suggestion.FindAuthorName(parameters.Android)}", suggestion.EllipsedContent);
+                builder.AddField($"#{index}: {suggestion.Score} points", suggestion.EllipsedContent);
             var embed = builder.Build();
 
             await parameters.SocketMessage.Channel.SendMessageAsync($"the top {count} {order.ToString().ToLower()} suggestions are", false, embed);
