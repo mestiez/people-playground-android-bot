@@ -156,7 +156,7 @@ namespace AndroidBot.Listeners
         {
             return Suggestions.Any(s =>
             s.Value.Content == suggestion ||
-            Levenshtein.Distance(s.Value.Content, suggestion) < .25
+            Levenshtein.Distance(s.Value.Content, suggestion) < .16f
             );
         }
 

@@ -34,6 +34,7 @@ namespace AndroidBot.Listeners
         [Command(default, roles: new[] { Server.Roles.Developers })]
         public static async Task ClearSuggestions(CommandParameters parameters)
         {
+
             int newMaxSize = 1000;
             if (parameters.Arguments.Length > 0)
                 if (int.TryParse(parameters.Arguments[0], out var i))
@@ -41,6 +42,7 @@ namespace AndroidBot.Listeners
 
             var listener = parameters.Android.GetListener<SuggestionListener>();
             int size = listener.Suggestions.Count;
+            await parameters.SocketMessage.Channel.SendMessageAsync($"going through {size} entries...");
             await listener.GlobalRefresh(parameters.Android, newMaxSize);
             await parameters.SocketMessage.Channel.SendMessageAsync($"cleared {size} suggestions, new list has {listener.Suggestions.Count} entries");
         }
@@ -96,7 +98,10 @@ namespace AndroidBot.Listeners
             builder.Color = Color.Teal;
             int index = 0;
             foreach (var suggestion in topSuggestions)
+            {
+                index++;
                 builder.AddField($"#{index}: {suggestion.Score} points", suggestion.EllipsedContent);
+            }
             var embed = builder.Build();
 
             await parameters.SocketMessage.Channel.SendMessageAsync($"the top {count} {order.ToString().ToLower()} suggestions are", false, embed);
