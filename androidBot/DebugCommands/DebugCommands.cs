@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Discord;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -47,6 +48,7 @@ namespace AndroidBot.Listeners
         [Command(new[] { "top", "show top", "show the top", "show me the top" })]
         public static async Task TopSuggestions(CommandParameters parameters)
         {
+            const int MaxSuggestionCount = 25;
             if (!int.TryParse(parameters.Arguments[0], out int count)) return;
             Order order = Order.Best;
 
@@ -77,10 +79,10 @@ namespace AndroidBot.Listeners
 
             var suggestions = parameters.Android.GetListener<SuggestionListener>().Suggestions;
 
-            if (count > Math.Min(suggestions.Count, 10))
+            if (count > Math.Min(suggestions.Count, MaxSuggestionCount))
             {
-                count = Math.Min(suggestions.Count, 10);
-                await parameters.SocketMessage.Channel.SendMessageAsync($"i can only show {count} entries");
+                count = Math.Min(suggestions.Count, MaxSuggestionCount);
+                await parameters.SocketMessage.Channel.SendMessageAsync($"i can only show {MaxSuggestionCount} entries");
             }
 
             var values = parameters.Android.GetListener<SuggestionListener>().Suggestions.Values;
@@ -90,12 +92,13 @@ namespace AndroidBot.Listeners
             else
                 topSuggestions = values.OrderByDescending(s => s.Score).Take(count);
 
-            await parameters.SocketMessage.Channel.SendMessageAsync($"the top {count} {order.ToString().ToLower()} suggestions are:");
+            var builder = new EmbedBuilder();
+            builder.Color = Color.Teal;
             foreach (var suggestion in topSuggestions)
-            {
-                string message = await suggestion.ToString(parameters.Android);
-                await parameters.SocketMessage.Channel.SendMessageAsync($"{message}\n\n");
-            }
+                builder.AddField($"{suggestion.Score} points by {suggestion.FindAuthorName(parameters.Android)}", suggestion.EllipsedContent);
+            var embed = builder.Build();
+
+            await parameters.SocketMessage.Channel.SendMessageAsync($"the top {count} {order.ToString().ToLower()} suggestions are", false, embed);
         }
 
         [ReflectiveCommand(nameof(DebugResponseConfiguration.Current.ModCleaningAliases), roles: new[] { Server.Roles.Developers })]

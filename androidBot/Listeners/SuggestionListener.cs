@@ -67,6 +67,8 @@ namespace AndroidBot.Listeners
 
             RestUserMessage restMessage = (RestUserMessage)await arg.Channel.GetMessageAsync(arg.Id);
             await restMessage.AddReactionsAsync(new IEmote[] { Upvote, Downvote });
+            if (arg.Content.Length > 1024)
+                await restMessage.Channel.SendMessageAsync("A suggestion shouldn't exceed 1024 characters. Try not to group multiple suggestions into a single message.");
             AddSuggestion((IUserMessage)arg, false);
             Save();
         }
@@ -152,20 +154,19 @@ namespace AndroidBot.Listeners
             [JsonIgnore]
             public int Score => Upvotes - Downvotes;
 
-            public override string ToString()
+            [JsonIgnore]
+            public string EllipsedContent
             {
-                string ellipsed = Content;
-                if (Content.Length > 250)
-                    ellipsed = Content.Substring(0, 250) + "...";
-
-                return $"```{ellipsed}```{Score} points";
+                get
+                {
+                    string ellipsed = Content;
+                    if (Content.Length > 1024)
+                        ellipsed = Content.Substring(0, 1021) + "...";
+                    return ellipsed;
+                }
             }
 
-            public async Task<string> ToString(Android android)
-            {
-                var author = (android.MainGuild.GetUser(AuthorId)?.Username ?? "unknown user");
-                return $"{this}\nby {author}";
-            }
+            public string FindAuthorName(Android android) => android.MainGuild.GetUser(AuthorId)?.Username ?? "a user that left the server or deleted their account";
         }
     }
 }
