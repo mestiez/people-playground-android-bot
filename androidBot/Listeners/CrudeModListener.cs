@@ -13,7 +13,7 @@ namespace AndroidBot.Listeners
 {
     public class CrudeModListener : MessageListener
     {
-        public override ulong[] Channels => new[] { Server.Channels.CrudeModding, Server.Channels.BotTesting, Server.Channels.Secret };
+        public override ulong[] Channels => new[] { Server.Channels.Programming, Server.Channels.Serenity };
         public override ulong[] Roles => new[] { Server.Roles.Any };
         public override ulong[] Users => new[] { Server.Users.Any };
 

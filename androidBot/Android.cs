@@ -22,7 +22,7 @@ namespace AndroidBot
 
         public SocketGuild MainGuild => Client.GetGuild(603649973510340619);
         public static string Path { get; private set; }
-        public static MuteManager MuteManager { get; private set; }
+        public static MuteSystem MuteSystem { get; private set; }
 
         public async Task MainAsync()
         {
@@ -44,13 +44,14 @@ namespace AndroidBot
             await Client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("android-token", EnvironmentVariableTarget.Machine));
             await Client.StartAsync();
 
-            MuteManager = new MuteManager(this);
-            await MuteManager.Initialise();
+            MuteSystem = new MuteSystem(this);
+            await MuteSystem.Initialise();
 
             Listeners.Add(new DebugListener());
             Listeners.Add(new ViolationListener());
             Listeners.Add(new SuggestionListener());
             Listeners.Add(new CrudeModListener());
+            Listeners.Add(new UserJoinLeaveListener());
 
             foreach (MessageListener listener in Listeners)
             {
@@ -66,10 +67,10 @@ namespace AndroidBot
             return (T)Listeners.Find(l => l is T);
         }
 
-        private async Task MessageReceived(SocketMessage arg)
+        private Task MessageReceived(SocketMessage arg)
         {
             if (arg.Author.Id == Client.CurrentUser.Id)
-                return;
+                return Task.CompletedTask;
 
             foreach (MessageListener listener in Listeners)
             {
@@ -78,6 +79,7 @@ namespace AndroidBot
 
                 _ = Task.Run(async () => await listener.OnMessage(arg, this));
             }
+            return Task.CompletedTask;
         }
 
         private Task Log(LogMessage msg)

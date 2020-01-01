@@ -63,9 +63,14 @@ namespace AndroidBot.Listeners
             await ParseAndMute(parameters, false);
         }
 
+        //public static async Task Ban(CommandParameters parameters)
+        //{
+        //    var matches = Utils.GetUserCodesFromText(parameters.SocketMessage.Content);
+        //}
+
         private static async Task ParseAndMute(CommandParameters parameters, bool muted, TimeSpan duration = default)
         {
-            var matches = Regex.Matches(parameters.SocketMessage.Content, "<@(.*?)>");
+            var matches = Utils.GetUserCodesFromText(parameters.SocketMessage.Content);
             if (!matches.Any())
             {
                 await parameters.SocketMessage.Channel.SendMessageAsync(DebugResponseConfiguration.Current.NoUserSpecifiedResponse.PickRandom());
@@ -91,9 +96,9 @@ namespace AndroidBot.Listeners
             foreach (var user in relevantUsers)
             {
                 if (muted)
-                    MuteManager.Mute(user.Id, parameters.SocketMessage.Channel.Id, duration);
+                    await MuteSystem.Mute(user.Id, parameters.SocketMessage.Channel.Id, duration);
                 else
-                    MuteManager.Unmute(user.Id);
+                    await MuteSystem.Unmute(user.Id);
             }
         }
     }

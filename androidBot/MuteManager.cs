@@ -4,140 +4,166 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace AndroidBot
 {
-    public class MuteManager
+    public class MuteSystem
     {
-        public static MuteManager Main { get; private set; }
-        public MuteManager(Android android)
+        public static MuteSystem Main { get; private set; }
+        public const string Path = "MuteEntries.json";
+        public static string FullPath => Android.Path + Path;
+        private Dictionary<ulong, MuteEntry> entries;
+
+        private class MuteEntry
+        {
+            public ulong User { get; set; }
+            public ulong ChannelID { get; set; }
+            public DateTime Expiration { get; set; }
+
+            public MuteEntry(ulong user, ulong channelID, DateTime expiration)
+            {
+                User = user;
+                ChannelID = channelID;
+                Expiration = expiration;
+            }
+        }
+
+        private Android android;
+        private Timer timer;
+        private bool requireWriteToDisk;
+
+        public MuteSystem(Android android)
         {
             this.android = android;
             Main = this;
         }
 
-        public class MutedUser
+        public static async Task Initialise()
         {
-            public ulong UserID;
-            public ulong ChannelID;
-            public bool IsMuted;
-            public DateTime UnmuteTime = DateTime.MaxValue;
+            await Main.LoadEntries();
 
-            public MutedUser(ulong userID, ulong channelID, DateTime unmuteTime)
+            Main.timer = new Timer(async (ob) =>
             {
-                UserID = userID;
-                ChannelID = channelID;
-                IsMuted = false;
-                UnmuteTime = unmuteTime;
-            }
+                await Main.CheckForExpiration();
+                if (Main.requireWriteToDisk)
+                    await Main.SaveEntries();
+            }, null, 2000, 1000);
+
+            Console.WriteLine($"{nameof(MuteSystem)} initialised");
         }
 
-        private Timer timer;
-        private Android android;
-        private HashSet<MutedUser> users = new HashSet<MutedUser>();
-        private bool requireWriteToDisk = false;
-
-        public const string Path = "MuteTable.json";
-        public static string FullPath => Android.Path + Path;
-
-        public static void Mute(ulong user, ulong channel, TimeSpan duration)
+        public static async Task Mute(ulong userId, ulong channelId, TimeSpan duration)
         {
-            var existing = Main.users.FirstOrDefault(u => u.UserID == user);
-            if (existing != null)
+            Main.requireWriteToDisk = true;
+            bool userIsAlreadyMuted = Main.entries.TryGetValue(userId, out var entry);
+            if (userIsAlreadyMuted)
             {
-                var updatedTime = DateTime.Now + duration;
-                bool isLonger = updatedTime > existing.UnmuteTime;
-                existing.UnmuteTime = updatedTime;
-                _ = Task.Run(async () =>
-                {
-                    await Main.android.MainGuild.GetTextChannel(channel).SendMessageAsync(isLonger ? "extending mute..." : "shortening mute...");
-                });
+                var newExpiration = DateTime.UtcNow + duration;
+                var isLonger = newExpiration > entry.Expiration;
+                entry.Expiration = newExpiration;
+                entry.ChannelID = channelId;
+                await Main.android.MainGuild.GetTextChannel(channelId).SendMessageAsync(isLonger ? "extending mute..." : "shortening mute...");
             }
             else
-                Main.users.Add(new MutedUser(user, channel, DateTime.Now + duration));
-
-            Main.requireWriteToDisk = true;
-        }
-
-        public static void Unmute(ulong user)
-        {
-            foreach (var u in Main.users)
-                if (u.UserID == user) u.UnmuteTime = DateTime.MinValue;
-
-            Main.requireWriteToDisk = true;
-        }
-
-        public async Task Initialise()
-        {
-            await LoadUsers();
-            timer = new Timer(Tick, null, 0, 1000);
-            Console.WriteLine($"{nameof(MuteManager)} initialised");
-        }
-
-        private void Tick(object stateInfo)
-        {
-            _ = Task.Run(UpdateRoles);
-        }
-
-        private async Task UpdateRoles()
-        {
-            var now = DateTime.Now;
-
-            foreach (var user in users)
             {
-                if (now < user.UnmuteTime && !user.IsMuted)
+                Main.entries.Add(userId, new MuteEntry(userId, channelId, DateTime.UtcNow + duration));
+                var user = Main.android.Client.GetUser(userId);
+                if (user == null)
                 {
-                    await SetMuteStatus(user.UserID, user.ChannelID, true);
-                    user.IsMuted = true;
-                    requireWriteToDisk = true;
+                    Console.WriteLine("User with ID " + userId + " is null");
+                    return;
                 }
-                else if (now >= user.UnmuteTime && user.IsMuted)
-                {
-                    await SetMuteStatus(user.UserID, user.ChannelID, false);
-                    user.IsMuted = false;
-                    requireWriteToDisk = true;
-                }
+                await Main.android.MainGuild.GetTextChannel(channelId).SendMessageAsync(DebugResponseConfiguration.Current.MutingNotification.PickRandom() + user.Username);
             }
-
-            users.RemoveWhere(u => !u.IsMuted);
-
-            if (requireWriteToDisk) await SaveUsers();
+            await Main.SetRole(userId, true);
         }
 
-        private async Task LoadUsers()
+        public static async Task Unmute(ulong userId)
         {
-            if (File.Exists(FullPath))
+            Main.requireWriteToDisk = true;
+            var entry = Main.entries[userId];
+            var removalSuccess = Main.entries.Remove(userId);
+            if (!removalSuccess)
+                Console.WriteLine("Could not remove " + userId + " from the mute entry list");
+
+            var user = Main.android.Client.GetUser(userId);
+            if (user == null)
+            {
+                Console.WriteLine("User with ID " + userId + " is null");
+                return;
+            }
+            await Main.SetRole(userId, false);
+            await Main.android.MainGuild.GetTextChannel(entry.ChannelID).SendMessageAsync(DebugResponseConfiguration.Current.UnmutingNotification.PickRandom() + user.Username);
+        }
+
+        private async Task CheckForExpiration()
+        {
+            foreach (var pair in entries.ToArray())
+            {
+                var expired = DateTime.UtcNow > pair.Value.Expiration;
+                if (expired)
+                    await Unmute(pair.Key);
+            }
+        }
+
+        private async Task LoadEntries()
+        {
+            if (!File.Exists(FullPath))
+                entries = new Dictionary<ulong, MuteEntry>();
+            else
             {
                 try
                 {
                     var raw = await File.ReadAllTextAsync(FullPath);
-                    users = JsonConvert.DeserializeObject<HashSet<MutedUser>>(raw);
+                    entries = JsonConvert.DeserializeObject<Dictionary<ulong, MuteEntry>>(raw);
+                    if (entries == null)
+                        entries = new Dictionary<ulong, MuteEntry>();
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine($"Can't access {FullPath}: {e.Message}");
-                    users = new HashSet<MutedUser>();
+                    entries = new Dictionary<ulong, MuteEntry>();
                 }
             }
-            else users = new HashSet<MutedUser>();
         }
 
-        private async Task SaveUsers()
+        private async Task SaveEntries()
         {
             requireWriteToDisk = false;
-            var raw = JsonConvert.SerializeObject(users);
-            await File.WriteAllTextAsync(FullPath, raw);
+            var raw = JsonConvert.SerializeObject(entries);
+            try
+            {
+                await File.WriteAllTextAsync(FullPath, raw);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Can't write to {FullPath}: {e.Message}");
+            }
         }
 
-        private async Task SetMuteStatus(ulong userId, ulong channelId, bool muted)
+        private async Task SetRole(ulong userId, bool muted)
         {
             var mutedRole = android.MainGuild.GetRole(Server.Roles.Muted);
             SocketGuildUser user = android.MainGuild.GetUser(userId);
+            if (user == null)
+            {
+                Console.WriteLine("Could not retrieve user " + userId);
+                return;
+            }
+            bool alreadyMuted = user.Roles.Any(r => r.Id == mutedRole.Id);
 
-            string message = (muted ? DebugResponseConfiguration.Current.MutingNotification.PickRandom() : DebugResponseConfiguration.Current.UnmutingNotification.PickRandom()) + user.Username;
+            if (muted && alreadyMuted)
+            {
+                Console.WriteLine("User is already muted: " + user.Username);
+                return;
+            }
+            else if (!muted && !alreadyMuted)
+            {
+                Console.WriteLine("User is already unmuted: " + user.Username);
+                return;
+            }
 
             try
             {
@@ -146,13 +172,12 @@ namespace AndroidBot
                 else
                     await user.RemoveRoleAsync(mutedRole);
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 Console.WriteLine("Could not set mute status on " + user.Username);
+                Console.WriteLine(e);
                 return;
             }
-
-            await android.MainGuild.GetTextChannel(channelId).SendMessageAsync(message);
         }
     }
 }

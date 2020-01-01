@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace AndroidBot
 {
@@ -27,5 +28,7 @@ namespace AndroidBot
 
             return c && u && r;
         }
+
+        public static MatchCollection GetUserCodesFromText(string text) => Regex.Matches(text, "<@(.*?)>");
     }
 }

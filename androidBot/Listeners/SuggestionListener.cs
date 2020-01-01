@@ -115,6 +115,7 @@ namespace AndroidBot.Listeners
 
             var channel = android.MainGuild.GetTextChannel(Server.Channels.Suggestions);
             var allMessages = await channel.GetMessagesAsync(maxMessages).FlattenAsync();
+            Console.WriteLine(allMessages.Count() + " messages total");
 
             foreach (IMessage message in allMessages)
             {
