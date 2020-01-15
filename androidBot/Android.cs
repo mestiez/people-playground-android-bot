@@ -1,7 +1,6 @@
 ﻿using AndroidBot.Listeners;
 using Discord;
 using Discord.WebSocket;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -52,6 +51,7 @@ namespace AndroidBot
             Listeners.Add(new SuggestionListener());
             Listeners.Add(new CrudeModListener());
             Listeners.Add(new UserJoinLeaveListener());
+            Listeners.Add(new ShareWorkshopListener());
 
             foreach (MessageListener listener in Listeners)
             {

@@ -10,4 +10,8 @@
     <PackageReference Include="F23.StringSimilarity" Version="3.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
 </Project>

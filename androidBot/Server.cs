@@ -19,6 +19,7 @@ namespace AndroidBot
 
             public const ulong General = 603649974042886296;
             public const ulong PeoplePlayground = 603849809178132501;
+            public const ulong ShareWorkshop = 666639129735331841;
             public const ulong Programming = 625596219921530890;
             public const ulong GoodbyeProgramming = 622788199886094347;
             public const ulong UnfunnyMemes = 611284040036646922;

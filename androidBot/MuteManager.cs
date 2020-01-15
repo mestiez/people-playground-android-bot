@@ -100,6 +100,7 @@ namespace AndroidBot
 
         private async Task CheckForExpiration()
         {
+            if (entries.Count == 0) return;
             foreach (var pair in entries.ToArray())
             {
                 var expired = DateTime.UtcNow > pair.Value.Expiration;

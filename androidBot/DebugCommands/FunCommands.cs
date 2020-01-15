@@ -25,5 +25,11 @@ namespace AndroidBot.Listeners
         {
             await parameters.SocketMessage.Channel.SendMessageAsync("vincent");
         }
+
+        [Command(new[] { "there he is", "disguise", "lego star wars", "lego", "star wars", "at-st", "imperial walker", "Groucho"})]
+        public static async Task Atst(CommandParameters parameters)
+        {
+            await parameters.SocketMessage.Channel.SendFileAsync(Android.Path + "atst.png");
+        }
     }
 }
