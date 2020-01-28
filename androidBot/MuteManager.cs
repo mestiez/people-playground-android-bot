@@ -83,7 +83,7 @@ namespace AndroidBot
         public static async Task Unmute(ulong userId)
         {
             Main.requireWriteToDisk = true;
-            var entry = Main.entries[userId];
+            if (!Main.entries.TryGetValue(userId, out var entry)) return;
             var removalSuccess = Main.entries.Remove(userId);
             if (!removalSuccess)
                 Console.WriteLine("Could not remove " + userId + " from the mute entry list");
