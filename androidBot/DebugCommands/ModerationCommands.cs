@@ -10,11 +10,73 @@ namespace AndroidBot.Listeners
     [CommandContainer(roles: new[] { Server.Roles.Administrators, Server.Roles.Moderators, Server.Roles.Developers })]
     public struct ModerationCommands
     {
+        [Command(aliases: new[] { "shadow ban", "shadowban", "ian", "limit", "handicap", })]
+        public static async Task Lock(CommandParameters parameters)
+        {
+            var matches = Utils.GetUserCodesFromText(parameters.SocketMessage.Content);
+            if (!matches.Any())
+            {
+                await parameters.SocketMessage.Channel.SendMessageAsync(DebugResponseConfiguration.Current.NoUserSpecifiedResponse.PickRandom());
+                return;
+            }
+
+            List<SocketGuildUser> relevantUsers = new List<SocketGuildUser>();
+            foreach (Match match in matches)
+            {
+                string toParse = new string(match.ToString().Where(c => char.IsDigit(c)).ToArray());
+                if (!ulong.TryParse(toParse, out ulong result)) continue;
+                try
+                {
+                    relevantUsers.Add(parameters.Android.MainGuild.GetUser(result));
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("Cannot retrieve user with id " + result);
+                }
+            }
+            var clownRole = parameters.Android.MainGuild.GetRole(Server.Roles.Clown);
+            foreach (var user in relevantUsers)
+            {
+                await user.AddRoleAsync(clownRole);
+            }
+        }
+
+        [Command(aliases: new[] { "pardon", "unshadowban", "un-shadowban", "grace", "forgive" })]
+        public static async Task Unlock(CommandParameters parameters)
+        {
+            var matches = Utils.GetUserCodesFromText(parameters.SocketMessage.Content);
+            if (!matches.Any())
+            {
+                await parameters.SocketMessage.Channel.SendMessageAsync(DebugResponseConfiguration.Current.NoUserSpecifiedResponse.PickRandom());
+                return;
+            }
+
+            List<SocketGuildUser> relevantUsers = new List<SocketGuildUser>();
+            foreach (Match match in matches)
+            {
+                string toParse = new string(match.ToString().Where(c => char.IsDigit(c)).ToArray());
+                if (!ulong.TryParse(toParse, out ulong result)) continue;
+                try
+                {
+                    relevantUsers.Add(parameters.Android.MainGuild.GetUser(result));
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("Cannot retrieve user with id " + result);
+                }
+            }
+            var clownRole = parameters.Android.MainGuild.GetRole(Server.Roles.Clown);
+            foreach (var user in relevantUsers)
+            {
+                await user.RemoveRoleAsync(clownRole);
+            }
+        }
+
         [Command]
         public static async Task Mute(CommandParameters parameters)
         {
             TimeSpan duration = TimeSpan.FromMinutes(15);
-
+            
             var match = Regex.Match(parameters.SocketMessage.Content, @"(for)\s(\d+)\s*(\w*\b)");
             if (match.Success)
             {

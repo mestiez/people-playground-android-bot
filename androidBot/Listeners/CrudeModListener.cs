@@ -78,7 +78,7 @@ namespace AndroidBot.Listeners
 
                 await ((IUserMessage)arg).PinAsync();
                 await SaveToDisk();
-                Console.WriteLine("Mod release/update for");
+                Console.WriteLine("Mod release/update for" + modName);
                 break;
             }
             await Task.CompletedTask;

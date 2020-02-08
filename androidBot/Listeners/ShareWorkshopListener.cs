@@ -21,10 +21,16 @@ namespace AndroidBot.Listeners
 
         public override async Task OnMessage(SocketMessage arg, Android android)
         {
-            bool isValidWorkshopLink = IsValidSteamWorkshopLink(arg.Content);
-            bool userBypass = UserCanBypass(arg.Author, android);
-            if (!isValidWorkshopLink && !userBypass)
+            if (string.IsNullOrWhiteSpace(arg.Content))
                 await arg.Channel.DeleteMessageAsync(arg);
+            else
+            {
+                var content = arg.Content.Split("\n ".ToCharArray());
+                bool isValidWorkshopLink = IsValidSteamWorkshopLink(content[0]);
+                bool userBypass = UserCanBypass(arg.Author, android);
+                if (!isValidWorkshopLink && !userBypass)
+                    await arg.Channel.DeleteMessageAsync(arg);
+            }
         }
 
         private bool UserCanBypass(SocketUser user, Android android)

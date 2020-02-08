@@ -39,6 +39,7 @@ namespace AndroidBot
 
             Client.Log += Log;
             Client.MessageReceived += MessageReceived;
+            Client.MessageUpdated += MessageUpdated;
 
             await Client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("android-token", EnvironmentVariableTarget.Machine));
             await Client.StartAsync();
@@ -49,7 +50,7 @@ namespace AndroidBot
             Listeners.Add(new DebugListener());
             Listeners.Add(new ViolationListener());
             Listeners.Add(new SuggestionListener());
-            Listeners.Add(new CrudeModListener());
+            //Listeners.Add(new CrudeModListener());
             Listeners.Add(new UserJoinLeaveListener());
             Listeners.Add(new ShareWorkshopListener());
 
@@ -60,6 +61,12 @@ namespace AndroidBot
             }
 
             await Task.Delay(-1);
+        }
+
+        private Task MessageUpdated(Cacheable<IMessage, ulong> messageId, SocketMessage message, ISocketMessageChannel channel)
+        {
+            MessageReceived(message);
+            return Task.CompletedTask;
         }
 
         public T GetListener<T>() where T : MessageListener
@@ -75,6 +82,7 @@ namespace AndroidBot
             foreach (MessageListener listener in Listeners)
             {
                 var guildUser = MainGuild.GetUser(arg.Author.Id);
+                if (guildUser == null) continue;
                 if (!Utils.IsAuthorised(listener, arg.Channel.Id, arg.Author.Id, guildUser.Roles)) continue;
 
                 _ = Task.Run(async () => await listener.OnMessage(arg, this));
