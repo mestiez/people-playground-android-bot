@@ -7,9 +7,29 @@ using System.Threading.Tasks;
 
 namespace AndroidBot.Listeners
 {
-    [CommandContainer(roles: new[] { Server.Roles.Administrators, Server.Roles.Moderators, Server.Roles.Developers })]
+    [CommandContainer(roles: new[] { Server.Roles.Administrators, Server.Roles.TrialMods, Server.Roles.Moderators, Server.Roles.Developers })]
     public struct ModerationCommands
     {
+        [Command(aliases: new[] { "show rule", "rule #", "show rule #", "rule number ", "show rule number ", "say rule", "say rule #", "say rule number ", })]
+        public static async Task Rule(CommandParameters parameters)
+        {
+            if (parameters.Arguments.Length == 0 || !int.TryParse(parameters.Arguments[0], out int ruleNr))
+                return;
+            const ulong RULE_MESSAGE = 604051493599051786;
+            ISocketMessageChannel channel = parameters.Android.Client.GetChannel(Server.Channels.Information) as ISocketMessageChannel;
+            var message = await channel.GetMessageAsync(RULE_MESSAGE);
+            var messageContent = message.Content;
+            var ruleRegex = new Regex("\\d+ - .+");
+            var ruleLines = ruleRegex.Matches(messageContent);
+            var response = "";
+            if (ruleLines.Count < ruleNr || ruleNr <= 0)
+                response = "there is no rule " + ruleNr;
+            else
+                response = "rule " + ruleLines[ruleNr - 1].Value.ToLower();
+
+            await parameters.SocketMessage.Channel.SendMessageAsync(response);
+        }
+
         [Command(aliases: new[] { "shadow ban", "shadowban", "ian", "limit", "handicap", })]
         public static async Task Lock(CommandParameters parameters)
         {
@@ -76,7 +96,7 @@ namespace AndroidBot.Listeners
         public static async Task Mute(CommandParameters parameters)
         {
             TimeSpan duration = TimeSpan.FromMinutes(15);
-            
+
             var match = Regex.Match(parameters.SocketMessage.Content, @"(for)\s(\d+)\s*(\w*\b)");
             if (match.Success)
             {

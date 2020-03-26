@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AndroidBot.Listeners
 {
-    [CommandContainer(roles: new[] { Server.Roles.Administrators, Server.Roles.Developers, Server.Roles.Moderators })]
+    [CommandContainer(roles: new[] { Server.Roles.Administrators, Server.Roles.TrialMods, Server.Roles.Developers, Server.Roles.Moderators })]
     public struct DebugCommands
     {
         [Command]

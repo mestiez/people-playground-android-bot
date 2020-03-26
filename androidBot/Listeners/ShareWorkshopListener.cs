@@ -36,7 +36,7 @@ namespace AndroidBot.Listeners
         private bool UserCanBypass(SocketUser user, Android android)
         {
             var roles = android.MainGuild.GetUser(user.Id).Roles.Select(r => r.Id);
-            return roles.Contains(Server.Roles.Moderators) || roles.Contains(Server.Roles.Administrators) || roles.Contains(Server.Roles.Developers);
+            return roles.Contains(Server.Roles.TrialMods) || roles.Contains(Server.Roles.Moderators) || roles.Contains(Server.Roles.Administrators) || roles.Contains(Server.Roles.Developers);
         }
 
         private bool IsValidSteamWorkshopLink(string url)

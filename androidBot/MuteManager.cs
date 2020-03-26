@@ -98,6 +98,11 @@ namespace AndroidBot
             await Main.android.MainGuild.GetTextChannel(entry.ChannelID).SendMessageAsync(DebugResponseConfiguration.Current.UnmutingNotification.PickRandom() + user.Username);
         }
 
+        public static bool IsMuted(ulong id)
+        {
+            return Main.entries.ContainsKey(id);
+        }
+
         private async Task CheckForExpiration()
         {
             if (entries.Count == 0) return;

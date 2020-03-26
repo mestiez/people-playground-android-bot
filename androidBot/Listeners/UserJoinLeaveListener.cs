@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
@@ -50,6 +51,10 @@ namespace AndroidBot.Listeners
         private async Task Client_UserJoined(SocketGuildUser user)
         {
             await Append($"{user.Username}({user.Discriminator}) joined on {DateTime.Now.ToString()}");
+
+            if (MuteSystem.IsMuted(user.Id))
+                await user.AddRoleAsync(android.MainGuild.GetRole(Server.Roles.Muted));
+
             await Task.CompletedTask;
         }
 

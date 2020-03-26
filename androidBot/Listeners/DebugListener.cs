@@ -11,7 +11,7 @@ namespace AndroidBot.Listeners
     public class DebugListener : MessageListener
     {
         public override ulong[] Channels => new[] { Server.Channels.Any };
-        public override ulong[] Roles => new[] { Server.Roles.Administrators, Server.Roles.Developers, Server.Roles.Moderators };
+        public override ulong[] Roles => new[] { Server.Roles.Administrators, Server.Roles.Developers, Server.Roles.TrialMods, Server.Roles.Moderators };
         public override ulong[] Users => new[] { Server.Users.Any };
 
         private List<string> generatedTriggers = new List<string>();
