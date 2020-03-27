@@ -71,7 +71,7 @@ namespace AndroidBot.Listeners
             RestUserMessage restMessage = (RestUserMessage)await arg.Channel.GetMessageAsync(arg.Id);
             if (IsDuplicate(arg.Content))
             {
-                await restMessage.Channel.SendMessageAsync("I will respectfully ignore your suggestion because it's been said before.");
+                await restMessage.Channel.SendMessageAsync("that has been suggested before and **any attempt to bypass a duplicate check will result in a channel ban**");
                 return;
             }
 

@@ -1,9 +1,11 @@
 ﻿using Discord;
+using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace AndroidBot
 {
@@ -27,6 +29,17 @@ namespace AndroidBot
             bool r = permissions.Roles.Contains(Server.Roles.Any) || permissions.Roles.Any(i => roles.Any(role => role.Id == i));
 
             return c && u && r;
+        }
+
+        public static async Task<string[]> ReadAllRules()
+        {
+            const ulong RULE_MESSAGE = 604051493599051786;
+            var channel = Android.Instance.Client.GetChannel(Server.Channels.Information) as ISocketMessageChannel;
+            var message = await channel.GetMessageAsync(RULE_MESSAGE);
+            string messageContent = message.Content;
+            Regex ruleRegex = new Regex("\\d+ - .+");
+            MatchCollection ruleLines = ruleRegex.Matches(messageContent);
+            return ruleLines.Select(r => r.Value).ToArray();
         }
 
         public static MatchCollection GetUserCodesFromText(string text) => Regex.Matches(text, "<@(.*?)>");

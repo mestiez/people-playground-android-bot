@@ -7,11 +7,12 @@ using Discord.WebSocket;
 
 namespace AndroidBot.Listeners
 {
+
     public class UserJoinLeaveListener : MessageListener
     {
         public override ulong[] Channels => new[] { Server.Channels.Any };
         public override ulong[] Users => new[] { Server.Users.Any };
-        public override ulong[] Roles => new[] { Server.Users.Any };
+        public override ulong[] Roles => new[] { Server.Roles.Any };
 
         public const ulong LogChannel = Server.Channels.Log;
         public const string Filename = "join_leave_log.html";

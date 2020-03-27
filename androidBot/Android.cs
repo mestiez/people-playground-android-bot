@@ -12,10 +12,11 @@ namespace AndroidBot
     {
         public static void Main(string[] args)
         {
-            var android = new Android();
-            android.MainAsync().GetAwaiter().GetResult();
+            Instance = new Android();
+            Instance.MainAsync().GetAwaiter().GetResult();
         }
 
+        public static Android Instance { private set; get; }
         public readonly DiscordSocketClient Client = new DiscordSocketClient();
         public readonly List<MessageListener> Listeners = new List<MessageListener>();
 
@@ -53,6 +54,7 @@ namespace AndroidBot
             //Listeners.Add(new CrudeModListener());
             Listeners.Add(new UserJoinLeaveListener());
             Listeners.Add(new ShareWorkshopListener());
+            Listeners.Add(new RuleRecallListener());
 
             foreach (MessageListener listener in Listeners)
             {
