@@ -53,6 +53,7 @@ namespace AndroidBot
             Listeners.Add(new SuggestionListener());
             //Listeners.Add(new CrudeModListener());
             Listeners.Add(new UserJoinLeaveListener());
+            Listeners.Add(new MessageDeletionListener());
             Listeners.Add(new ShareWorkshopListener());
             Listeners.Add(new RuleRecallListener());
 

@@ -1,7 +1,9 @@
 ﻿using Discord;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace AndroidBot.Listeners
@@ -29,6 +31,16 @@ namespace AndroidBot.Listeners
         public static async Task Violations(CommandParameters parameters)
         {
             await parameters.SocketMessage.Channel.SendMessageAsync(string.Join("\n", parameters.Android.GetListener<ViolationListener>().Violations));
+        }
+
+        [Command(aliases: new[] { "print message buffer", "mbuffer" })]
+        public static async Task PrintMessageBuffer(CommandParameters parameters)
+        {
+            string message = string.Join("\n", parameters.Android.GetListener<MessageDeletionListener>().GetBuffer());
+            ASCIIEncoding encoder = new ASCIIEncoding();
+            var bytes = encoder.GetBytes(message);
+            MemoryStream stream = new MemoryStream(bytes);
+            await parameters.SocketMessage.Channel.SendFileAsync(stream, "message buffer.txt");
         }
 
         [Command(default, roles: new[] { Server.Roles.Developers })]
