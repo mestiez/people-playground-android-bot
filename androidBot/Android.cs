@@ -12,6 +12,10 @@ namespace AndroidBot
     {
         public static void Main(string[] args)
         {
+            if (args.Length >= 1)
+                setStorage = args[0];
+            if (args.Length >= 2)
+                argToken = args[1];
             Instance = new Android();
             Instance.MainAsync().GetAwaiter().GetResult();
         }
@@ -24,25 +28,28 @@ namespace AndroidBot
         public static string Path { get; private set; }
         public static MuteSystem MuteSystem { get; private set; }
 
+        private static string setStorage = null;
+        private static string argToken = null;
+
         public async Task MainAsync()
         {
-            Path = Environment.GetEnvironmentVariable("ANDROID_STORAGE", EnvironmentVariableTarget.Machine);
+            Path = setStorage ?? Environment.GetEnvironmentVariable("ANDROID_STORAGE", EnvironmentVariableTarget.Machine);
             if (Path == null)
             {
-                Path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\android_bot\\";
+                Path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/android_bot/";
                 Console.WriteLine("%ANDROID_STORAGE% has not been set, falling back to " + Path);
             }
-            if (!Path.EndsWith("\\"))
+            if (!Path.EndsWith("/"))
             {
                 Console.WriteLine("%ANDROID_STORAGE% does not end with a backslash");
-                Path += "\\";
+                Path += "/";
             }
 
             Client.Log += Log;
             Client.MessageReceived += MessageReceived;
             Client.MessageUpdated += MessageUpdated;
 
-            await Client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("android-token", EnvironmentVariableTarget.Machine));
+            await Client.LoginAsync(TokenType.Bot, argToken ?? Environment.GetEnvironmentVariable("ANDROID_TOKEN", EnvironmentVariableTarget.Machine));
             await Client.StartAsync();
 
             MuteSystem = new MuteSystem(this);

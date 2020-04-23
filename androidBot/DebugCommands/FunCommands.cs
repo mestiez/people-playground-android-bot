@@ -41,6 +41,38 @@ namespace AndroidBot.Listeners
             await parameters.SocketMessage.Channel.SendFileAsync(Android.Path + "atst.png");
         }
 
+        [Command(new[] { "what is ", "whats ", "what's " })]
+        public static async Task Define(CommandParameters parameters)
+        {
+            //https://github.com/meetDeveloper/googleDictionaryAPI
+            const string api = @"https://api.dictionaryapi.dev/api/v1/entries/en/";
+
+            var message = parameters.SocketMessage.Content;
+            try
+            {
+                var resultArray = await Utils.HttpGet<DictionaryApiResponse[]>(api + message.Split(' ').Last());
+                if (resultArray == null || resultArray.Length == 0)
+                {
+                    await parameters.SocketMessage.Channel.SendMessageAsync("i don't know");
+                    return;
+                }
+                var result = resultArray[0];
+                if (result.meaning == null || result.meaning.Count == 0)
+                {
+                    await parameters.SocketMessage.Channel.SendMessageAsync("i don't know");
+                    return;
+                }
+                var reply = $@"**{result.word}**: {result.meaning.First().Value.First().definition}";
+                await parameters.SocketMessage.Channel.SendMessageAsync(reply);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message + "\nwhile trying to get definition of message: " + message);
+                await parameters.SocketMessage.Channel.SendMessageAsync("i don't know");
+                return;
+            }
+        }
+
         [Command(users: new[] { Server.Users.zooi })]
         public static async Task Say(CommandParameters parameters)
         {

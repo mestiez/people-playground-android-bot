@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Net.Http;
+using Newtonsoft.Json;
 
 namespace AndroidBot
 {
@@ -43,5 +45,15 @@ namespace AndroidBot
         }
 
         public static MatchCollection GetUserCodesFromText(string text) => Regex.Matches(text, "<@(.*?)>");
+
+        public static async Task<T> HttpGet<T>(string uri)
+        {
+            using (HttpClient http = new HttpClient())
+            {
+                var body = await http.GetStringAsync(uri);
+                var tree = JsonConvert.DeserializeObject<T>(body);
+                return tree;
+            }
+        }
     }
 }
