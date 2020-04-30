@@ -55,5 +55,15 @@ namespace AndroidBot
                 return tree;
             }
         }
+        public static async Task<string> HttpPost(string uri, Dictionary<string, string> values)
+        {
+            using (HttpClient http = new HttpClient())
+            {
+                var data = new FormUrlEncodedContent(values);
+                var body = await http.PostAsync(uri, data);
+                var asString = await body.Content.ReadAsStringAsync();
+                return asString;
+            }
+        }
     }
 }

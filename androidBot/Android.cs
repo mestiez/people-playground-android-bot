@@ -16,6 +16,8 @@ namespace AndroidBot
                 setStorage = args[0];
             if (args.Length >= 2)
                 argToken = args[1];
+            if (args.Length >= 3)
+                ApiKey = args[2];
             Instance = new Android();
             Instance.MainAsync().GetAwaiter().GetResult();
         }
@@ -30,6 +32,7 @@ namespace AndroidBot
 
         private static string setStorage = null;
         private static string argToken = null;
+        public static string ApiKey { get; private set; } = null;
 
         public async Task MainAsync()
         {
@@ -44,6 +47,8 @@ namespace AndroidBot
                 Console.WriteLine("%ANDROID_STORAGE% does not end with a backslash");
                 Path += "/";
             }
+
+            ApiKey = ApiKey ?? Environment.GetEnvironmentVariable("ANDROID_STEAM_API",EnvironmentVariableTarget.Machine);
 
             Client.Log += Log;
             Client.MessageReceived += MessageReceived;

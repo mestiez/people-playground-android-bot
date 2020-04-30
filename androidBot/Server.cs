@@ -49,6 +49,7 @@ namespace AndroidBot
             public const ulong Everyone = 603649973510340619;
             public const ulong Muted = 604692303550087207;
             public const ulong Clown = 675428048719446096;
+            public const ulong Cowboy = 705165944007426130;
             public const ulong Bots = 621670270717132801;
             public const ulong Boosters = 619331382484926465;
             public const ulong TrialMods = 682172745190080523;
