@@ -126,6 +126,22 @@ namespace AndroidBot.Listeners
             await parameters.Android.GetListener<CrudeModListener>().SaveToDisk();
         }
 
+        [Command(roles:new[] { Server.Roles.Administrators, Server.Roles.Developers })]
+        public static async Task RetrieveSpreadsheet(CommandParameters parameters)
+        {
+            await parameters.SocketMessage.Channel.SendMessageAsync($"here goes...");
+            try
+            {
+                parameters.Android.GetListener<DebugListener>().RetrieveReponseSpreadsheet();
+                await parameters.SocketMessage.Channel.SendMessageAsync($"... did it! (´• ω •`)");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                await parameters.SocketMessage.Channel.SendMessageAsync($"... i messed up ( ; ω ; )");
+            }
+        }
+
         private enum Order { Best, Worst }
     }
 }

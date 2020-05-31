@@ -32,19 +32,19 @@ namespace AndroidBot.Listeners
                 bool userBypass = UserCanBypass(arg.Author, android);
                 if (!isValidWorkshopLink && !userBypass)
                     await arg.Channel.DeleteMessageAsync(arg);
-                else
-                {
-                    //holy shit, a valid workshop link!
-                    var trimmedUrl = content[0].Trim();
-                    if (arg.Content.Trim() == trimmedUrl)
-                    {
-                        //ok so it has nothing extra, just the link itself. time to embed a thing to make it clearer
-                        if (long.TryParse(trimmedUrl.Split('=').Last(), out long id))
-                            await PostMessageAboutPublishedFile(id, trimmedUrl, arg);
-                        else
-                            Console.WriteLine("non valid workshop link got through somehow wtf");
-                    }
-                }
+                //else
+                //{
+                //    //holy shit, a valid workshop link!
+                //    var trimmedUrl = content[0].Trim();
+                //    if (arg.Content.Trim() == trimmedUrl)
+                //    {
+                //        //ok so it has nothing extra, just the link itself. time to embed a thing to make it clearer
+                //        if (long.TryParse(trimmedUrl.Split('=').Last(), out long id))
+                //            await PostMessageAboutPublishedFile(id, trimmedUrl, arg);
+                //        else
+                //            Console.WriteLine("non valid workshop link got through somehow wtf");
+                //    }
+                //}
             }
         }
 

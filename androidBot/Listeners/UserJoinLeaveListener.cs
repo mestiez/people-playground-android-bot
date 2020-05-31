@@ -38,13 +38,28 @@ namespace AndroidBot.Listeners
 
         private async Task Client_UserBanned(SocketUser user, SocketGuild guild)
         {
-            await Append($"{user.Username}({user.Discriminator}) banned on {DateTime.Now.ToString()}");
+            string banReason = "";
+            try
+            {
+                var ban = await guild.GetBanAsync(user);
+                banReason = " for " + (string.IsNullOrWhiteSpace(ban.Reason) ? "no reason" : ("\"" + ban.Reason + "\""));
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Failed to get ban reason for " + user.Username);
+            }
+            await Append($"{user.Username}({user.Discriminator}) banned on {DateTime.Now.ToString()}{banReason}");
             await Task.CompletedTask;
         }
 
         private async Task Client_UserLeft(SocketGuildUser user)
         {
-            await Append($"{user.Username}({user.Discriminator}) left on {DateTime.Now.ToString()}");
+            string leaveMessage = $"{user.Username}({user.Discriminator}) left on {DateTime.Now.ToString()}";
+            var roles = user.Roles.Where(r => !r.IsEveryone).ToList() ;
+            if (roles.Count > 0)
+                leaveMessage += $"\n**Left with roles:** {string.Join(", ", roles.Select(s => s.Name))}";
+
+            await Append(leaveMessage);
             await Task.CompletedTask;
         }
 

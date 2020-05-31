@@ -8,6 +8,7 @@ using Discord.WebSocket;
 
 namespace AndroidBot.Listeners
 {
+
     public class ViolationListener : MessageListener
     {
         public override ulong[] Channels => new[] { Server.Channels.Any };

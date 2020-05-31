@@ -73,7 +73,7 @@ namespace AndroidBot.Listeners
             }
         }
 
-        [Command(users: new[] { Server.Users.zooi })]
+        [Command(users: new[] { Server.Users.zooi, Server.Users.Vincentmario, Server.Users.Dikkiedik, Server.Users.Koof })]
         public static async Task Say(CommandParameters parameters)
         {
             var message = parameters.SocketMessage.Content;

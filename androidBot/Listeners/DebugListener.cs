@@ -19,13 +19,31 @@ namespace AndroidBot.Listeners
         private readonly List<CommandReference> commands = new List<CommandReference>();
         private Dictionary<ulong, DateTime> waitingForMap = new Dictionary<ulong, DateTime>();
 
+        private Dictionary<string, string> remoteResponseTable = new Dictionary<string, string>();
+
         public async override Task Initialise(Android android)
         {
+            InitialiseRemoteTable();
+
             await LoadConfiguration();
             LoadCommands();
             LoadTriggers();
 
             Console.WriteLine("Trigger count: " + generatedTriggers.Count);
+        }
+
+        private void InitialiseRemoteTable()
+        {
+            try
+            {
+                SheetsInterface.Authenticate();
+                SheetsInterface.InitialiseService();
+                RetrieveReponseSpreadsheet();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Er is iets goed misgegaan:\n" + e.Message);
+            }
         }
 
         private async Task LoadConfiguration()
@@ -80,7 +98,7 @@ namespace AndroidBot.Listeners
 
                     reference.Aliases = aliases.ToArray();
                     reference.Permissions = containerAttributes.Cast<IPermissions>().Concat(commandAttributes).ToArray();
-                    reference.Delegate = Delegate.CreateDelegate(typeof(Func<CommandParameters, Task>), method);
+                    reference.Delegate = (Func<CommandParameters, Task>)Delegate.CreateDelegate(typeof(Func<CommandParameters, Task>), method);
 
                     commands.Add(reference);
                     Console.WriteLine("Command registered: " + name);
@@ -139,6 +157,12 @@ namespace AndroidBot.Listeners
 
         private async Task Execute(string content, SocketMessage message, Android android)
         {
+            foreach (var remoteResponse in remoteResponseTable)
+            {
+                if (remoteResponse.Key.ToLower() != content.ToLower()) continue;
+                await message.Channel.SendMessageAsync(remoteResponse.Value);
+            }
+
             foreach (CommandReference commandReference in commands)
                 foreach (string alias in commandReference.Aliases)
                 {
@@ -151,12 +175,29 @@ namespace AndroidBot.Listeners
                     CommandParameters parameters = new CommandParameters(message, android, arguments);
 
                     if (!commandReference.IsAuthorised(message.Channel.Id, message.Author.Id, parameters.Android.MainGuild.GetUser(message.Author.Id).Roles)) continue;
-                    await (commandReference.Delegate.DynamicInvoke(parameters) as Task);
+                    await (commandReference.Delegate(parameters) as Task);
 
                     break;
                 }
 
             await Task.CompletedTask;
+        }
+
+        public void RetrieveReponseSpreadsheet()
+        {
+            const string id = "1itpt9-c7o7yLqDk83yLpHppVxSceSOsT2xmSGMg6hT4";
+            const string range = "Sheet1!A:B";
+            var values = SheetsInterface.GetValues(id, range);
+            remoteResponseTable.Clear();
+            for (int y = 0; y < values.Count; y++)
+            {
+                var entry = values[y];
+                if (entry.Count != 2)
+                    continue;
+
+                remoteResponseTable.Add(values[y][0].ToString(), values[y][1].ToString());
+                Console.WriteLine(values[y][0].ToString() + " - " + values[y][1].ToString());
+            }
         }
     }
 }

@@ -2,16 +2,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace AndroidBot.Listeners
 {
     public struct CommandReference
     {
         public string[] Aliases;
-        public Delegate Delegate;
+        public Func<CommandParameters, Task> Delegate;
         public IPermissions[] Permissions;
 
-        public CommandReference(string[] aliases, Delegate @delegate, IPermissions[] permissions)
+        public CommandReference(string[] aliases, Func<CommandParameters, Task> @delegate, IPermissions[] permissions)
         {
             Aliases = aliases;
             Delegate = @delegate;

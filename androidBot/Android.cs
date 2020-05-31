@@ -34,6 +34,19 @@ namespace AndroidBot
         private static string argToken = null;
         public static string ApiKey { get; private set; } = null;
 
+        public readonly MessageListener[] ActiveListeners =
+        {
+            new DebugListener(),
+            new ViolationListener(),
+            new SuggestionListener(),
+            //new CrudeModListener(),
+            new UserJoinLeaveListener(),
+            //new MessageDeletionListener(),
+            new ShareWorkshopListener(),
+            new RuleRecallListener(),
+            new PinListener(),
+        };
+
         public async Task MainAsync()
         {
             Path = setStorage ?? Environment.GetEnvironmentVariable("ANDROID_STORAGE", EnvironmentVariableTarget.Machine);
@@ -60,14 +73,7 @@ namespace AndroidBot
             MuteSystem = new MuteSystem(this);
             await MuteSystem.Initialise();
 
-            Listeners.Add(new DebugListener());
-            Listeners.Add(new ViolationListener());
-            Listeners.Add(new SuggestionListener());
-            //Listeners.Add(new CrudeModListener());
-            Listeners.Add(new UserJoinLeaveListener());
-            Listeners.Add(new MessageDeletionListener());
-            Listeners.Add(new ShareWorkshopListener());
-            Listeners.Add(new RuleRecallListener());
+            Listeners.AddRange(ActiveListeners);
 
             foreach (MessageListener listener in Listeners)
             {
