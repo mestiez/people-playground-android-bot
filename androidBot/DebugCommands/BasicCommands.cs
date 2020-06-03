@@ -1,7 +1,10 @@
 ﻿using Discord;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace AndroidBot.Listeners
@@ -41,7 +44,7 @@ namespace AndroidBot.Listeners
             var activityType = ActivityType.Listening;
             await SetStatus(parameters, activityType);
         }
-        
+
         [Command(roles: new[] { Server.Roles.Developers, Server.Roles.Administrators })]
         public static async Task ListPins(CommandParameters parameters)
         {
@@ -61,6 +64,50 @@ namespace AndroidBot.Listeners
             await parameters.SocketMessage.Channel.SendFileAsync(stream, "pins.txt");
         }
 
+        [Command(roles: new[] { Server.Roles.Developers, Server.Roles.Administrators })]
+        public static async Task Archive(CommandParameters parameters)
+        {
+            const int MaxMessageCount = 10000;
+
+            Regex regex = new Regex(@"(<#\d+>)");
+            var matches = regex.Matches(parameters.SocketMessage.Content);
+            await parameters.SocketMessage.Channel.SendMessageAsync($"okay! working on it");
+            var files = new List<ChannelArchive>();
+
+            foreach (Match match in matches)
+            {
+                bool successfulParse = ulong.TryParse(new string(match.Value.Where(c => char.IsDigit(c)).ToArray()), out var channelId);
+                if (!successfulParse) continue;
+                var channel = parameters.Android.Client.GetChannel(channelId);
+                if (channel == null) continue;
+                try
+                {
+                    ITextChannel tc = (ITextChannel)channel;
+                    var messages = tc.GetMessagesAsync(limit: MaxMessageCount, mode: CacheMode.AllowDownload);
+                    string file = $"#{tc.Name} at {DateTime.UtcNow}\nBiscuit can only archive the last {MaxMessageCount} messages\n\n";
+                    await messages.ForEachAwaitAsync(m =>
+                    {
+                        foreach (var item in m)
+                            file += $"{item.Author} ({item.Timestamp.UtcDateTime})\n\t{item.Content}\n\n";
+                        return Task.CompletedTask;
+                    });
+                    files.Add(new ChannelArchive(tc.Name, file));
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine(channel.Id + " is not a text channel");
+                }
+            }
+
+            foreach (var archive in files)
+            {
+                ASCIIEncoding encoder = new ASCIIEncoding();
+                var bytes = encoder.GetBytes(archive.Data);
+                MemoryStream stream = new MemoryStream(bytes);
+                await parameters.SocketMessage.Channel.SendFileAsync(stream, $"{archive.Name}.txt");
+            }
+        }
+
         private static async Task SetStatus(CommandParameters parameters, ActivityType activityType)
         {
             Console.WriteLine("Status set: " + activityType.ToString() + " " + string.Join(" ", parameters.Arguments));
@@ -70,6 +117,18 @@ namespace AndroidBot.Listeners
             if (string.IsNullOrWhiteSpace(game)) return;
 
             await parameters.Android.Client.SetActivityAsync(new Game(game, activityType));
+        }
+
+        private struct ChannelArchive
+        {
+            public string Name;
+            public string Data;
+
+            public ChannelArchive(string name, string data)
+            {
+                Name = name;
+                Data = data;
+            }
         }
     }
 }
