@@ -58,10 +58,8 @@ namespace AndroidBot.Listeners
                     result += entry;
                 }
             }
-            ASCIIEncoding encoder = new ASCIIEncoding();
-            var bytes = encoder.GetBytes(result);
-            MemoryStream stream = new MemoryStream(bytes);
-            await parameters.SocketMessage.Channel.SendFileAsync(stream, "pins.txt");
+
+            await Utils.SendTextAsFile(parameters.SocketMessage.Channel, result, "pins.txt");
         }
 
         [Command(roles: new[] { Server.Roles.Developers, Server.Roles.Administrators })]
@@ -74,6 +72,9 @@ namespace AndroidBot.Listeners
             await parameters.SocketMessage.Channel.SendMessageAsync($"okay! working on it");
             var files = new List<ChannelArchive>();
 
+            if (matches.Count == 0)
+                await addToFiles(parameters.SocketMessage.Channel);
+
             foreach (Match match in matches)
             {
                 bool successfulParse = ulong.TryParse(new string(match.Value.Where(c => char.IsDigit(c)).ToArray()), out var channelId);
@@ -82,16 +83,8 @@ namespace AndroidBot.Listeners
                 if (channel == null) continue;
                 try
                 {
-                    ITextChannel tc = (ITextChannel)channel;
-                    var messages = tc.GetMessagesAsync(limit: MaxMessageCount, mode: CacheMode.AllowDownload);
-                    string file = $"#{tc.Name} at {DateTime.UtcNow}\nBiscuit can only archive the last {MaxMessageCount} messages\n\n";
-                    await messages.ForEachAwaitAsync(m =>
-                    {
-                        foreach (var item in m)
-                            file += $"{item.Author} ({item.Timestamp.UtcDateTime})\n\t{item.Content}\n\n";
-                        return Task.CompletedTask;
-                    });
-                    files.Add(new ChannelArchive(tc.Name, file));
+                    IMessageChannel tc = (IMessageChannel)channel;
+                    await addToFiles(tc);
                 }
                 catch (Exception)
                 {
@@ -100,11 +93,22 @@ namespace AndroidBot.Listeners
             }
 
             foreach (var archive in files)
+                await Utils.SendTextAsFile(parameters.SocketMessage.Channel, archive.Data, $"{archive.Name}.txt");
+
+            async Task addToFiles(IMessageChannel tc)
             {
-                ASCIIEncoding encoder = new ASCIIEncoding();
-                var bytes = encoder.GetBytes(archive.Data);
-                MemoryStream stream = new MemoryStream(bytes);
-                await parameters.SocketMessage.Channel.SendFileAsync(stream, $"{archive.Name}.txt");
+                var messages = tc.GetMessagesAsync(limit: MaxMessageCount, mode: CacheMode.AllowDownload);
+                string file = "";
+                await messages.ForEachAwaitAsync(m =>
+                {
+                    foreach (var item in m)
+                        file = file.Insert(0, $"{item.Author} ({item.Timestamp.UtcDateTime})\n\t{item.Content}\n\n");
+                    return Task.CompletedTask;
+                });
+
+                file = file.Insert(0, $"#{tc.Name} at {DateTime.UtcNow}\nBiscuit can only archive the last {MaxMessageCount} messages\n\n");
+
+                files.Add(new ChannelArchive(tc.Name, file));
             }
         }
 

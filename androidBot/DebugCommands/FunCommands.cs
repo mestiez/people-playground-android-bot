@@ -48,9 +48,10 @@ namespace AndroidBot.Listeners
             const string api = @"https://api.dictionaryapi.dev/api/v1/entries/en/";
 
             var message = parameters.SocketMessage.Content;
+            var word = string.Join(" ", parameters.Arguments);
             try
             {
-                var resultArray = await Utils.HttpGet<DictionaryApiResponse[]>(api + message.Split(' ').Last());
+                var resultArray = await Utils.HttpGet<DictionaryApiResponse[]>(api + word);
                 if (resultArray == null || resultArray.Length == 0)
                 {
                     await parameters.SocketMessage.Channel.SendMessageAsync("i don't know");
@@ -67,7 +68,7 @@ namespace AndroidBot.Listeners
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message + "\nwhile trying to get definition of message: " + message);
+                Console.WriteLine(e.Message + "\nwhile trying to get definition of \'" + word + "\'");
                 await parameters.SocketMessage.Channel.SendMessageAsync("i don't know");
                 return;
             }

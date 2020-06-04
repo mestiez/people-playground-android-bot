@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Net.Http;
 using Newtonsoft.Json;
+using System.IO;
 
 namespace AndroidBot
 {
@@ -55,6 +56,15 @@ namespace AndroidBot
                 return tree;
             }
         }
+
+        public static async Task SendTextAsFile(IMessageChannel channel, string data, string filename= "message.txt")
+        {
+            ASCIIEncoding encoder = new ASCIIEncoding();
+            var bytes = encoder.GetBytes(data);
+            MemoryStream stream = new MemoryStream(bytes);
+            await channel.SendFileAsync(stream, filename);
+        }
+
         public static async Task<string> HttpPost(string uri, Dictionary<string, string> values)
         {
             using (HttpClient http = new HttpClient())
