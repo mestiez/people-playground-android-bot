@@ -46,7 +46,7 @@ namespace AndroidBot.Listeners
         {
             //https://github.com/meetDeveloper/googleDictionaryAPI
             const string api = @"https://api.dictionaryapi.dev/api/v1/entries/en/";
-
+            var isTyping = parameters.SocketMessage.Channel.EnterTypingState();
             var message = parameters.SocketMessage.Content;
             var word = string.Join(" ", parameters.Arguments);
             try
@@ -55,23 +55,28 @@ namespace AndroidBot.Listeners
                 if (resultArray == null || resultArray.Length == 0)
                 {
                     await parameters.SocketMessage.Channel.SendMessageAsync("i don't know");
+                    isTyping?.Dispose();
                     return;
                 }
                 var result = resultArray[0];
                 if (result.meaning == null || result.meaning.Count == 0)
                 {
                     await parameters.SocketMessage.Channel.SendMessageAsync("i don't know");
+                    isTyping?.Dispose();
                     return;
                 }
                 var reply = $@"**{result.word}**: {result.meaning.First().Value.First().definition}";
+                isTyping?.Dispose();
                 await parameters.SocketMessage.Channel.SendMessageAsync(reply);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message + "\nwhile trying to get definition of \'" + word + "\'");
+                isTyping?.Dispose();
                 await parameters.SocketMessage.Channel.SendMessageAsync("i don't know");
                 return;
             }
+            isTyping?.Dispose();
         }
 
         [Command(users: new[] { Server.Users.zooi, Server.Users.Vincentmario, Server.Users.Dikkiedik, Server.Users.Koof })]

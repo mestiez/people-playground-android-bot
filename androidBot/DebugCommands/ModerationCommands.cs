@@ -1,4 +1,6 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
+using Discord.Rest;
+using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -121,6 +123,32 @@ namespace AndroidBot.Listeners
         {
             await ParseAndMute(parameters, false);
         }
+
+        //[Command(aliases: new[] { "delete my shit" }, roles: new[] { Server.Roles.Moderators, Server.Roles.Developers })]
+        //public static async Task deleteMyShit(CommandParameters parameters)
+        //{
+        //    ulong[] includeChannels = {
+        //        Server.Channels.General,
+        //        Server.Channels.PeoplePlayground,
+        //        Server.Channels.VC,
+        //    };
+
+        //    await parameters.SocketMessage.Channel.SendMessageAsync("okay...");
+
+        //    int count = 0;
+
+        //    foreach (var i in includeChannels)
+        //    {
+        //        var c = await parameters.Android.Client.Rest.GetChannelAsync(i) as ITextChannel;
+
+        //        var messages = (await c.GetMessagesAsync(4500).FlattenAsync()).Where(m => m.Author.Id == parameters.SocketMessage.Author.Id);
+        //        Console.WriteLine(string.Join("\n", messages));
+        //        count += messages.Count();
+        //        //await c.DeleteMessagesAsync(messages);
+        //    }
+
+        //    await parameters.SocketMessage.Channel.SendMessageAsync($"...deleted {count} messages");
+        //}
 
         //public static async Task Ban(CommandParameters parameters)
         //{
