@@ -106,7 +106,7 @@ namespace AndroidBot.Listeners
             }
         }
 
-        public override async Task OnMessage(SocketMessage arg, Android android)
+        public override async Task OnMessage(SocketMessage arg, Android android, bool editedMessage)
         {
             string content = arg.Content.ToLower().Trim().Normalize();
 

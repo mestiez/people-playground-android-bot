@@ -21,7 +21,7 @@ namespace AndroidBot.Listeners
             return Task.CompletedTask;
         }
 
-        public override async Task OnMessage(SocketMessage arg, Android android)
+        public override async Task OnMessage(SocketMessage arg, Android android, bool editedMessage)
         {
             if (string.IsNullOrWhiteSpace(arg.Content))
                 await arg.Channel.DeleteMessageAsync(arg);

@@ -50,7 +50,7 @@ namespace AndroidBot.Listeners
             buffer.Remove(arg1.Id);
         }
 
-        public override async Task OnMessage(SocketMessage message, Android android)
+        public override async Task OnMessage(SocketMessage message, Android android, bool editedMessage)
         {
             Add(message);
             await Task.CompletedTask;

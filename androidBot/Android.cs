@@ -64,7 +64,7 @@ namespace AndroidBot
             ApiKey = ApiKey ?? Environment.GetEnvironmentVariable("ANDROID_STEAM_API",EnvironmentVariableTarget.Machine);
 
             Client.Log += Log;
-            Client.MessageReceived += MessageReceived;
+            Client.MessageReceived += (arg) => MessageReceived(arg, false);
             Client.MessageUpdated += MessageUpdated;
 
             await Client.LoginAsync(TokenType.Bot, argToken ?? Environment.GetEnvironmentVariable("ANDROID_TOKEN", EnvironmentVariableTarget.Machine));
@@ -86,7 +86,7 @@ namespace AndroidBot
 
         private Task MessageUpdated(Cacheable<IMessage, ulong> messageId, SocketMessage message, ISocketMessageChannel channel)
         {
-            MessageReceived(message);
+            MessageReceived(message, true);
             return Task.CompletedTask;
         }
 
@@ -95,7 +95,7 @@ namespace AndroidBot
             return (T)Listeners.Find(l => l is T);
         }
 
-        private Task MessageReceived(SocketMessage arg)
+        private Task MessageReceived(SocketMessage arg, bool edited)
         {
             if (arg.Author.Id == Client.CurrentUser.Id)
                 return Task.CompletedTask;
@@ -106,7 +106,7 @@ namespace AndroidBot
                 if (guildUser == null) continue;
                 if (!Utils.IsAuthorised(listener, arg.Channel.Id, arg.Author.Id, guildUser.Roles)) continue;
 
-                _ = Task.Run(async () => await listener.OnMessage(arg, this));
+                _ = Task.Run(async () => await listener.OnMessage(arg, this, edited));
             }
             return Task.CompletedTask;
         }

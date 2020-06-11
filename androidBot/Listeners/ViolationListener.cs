@@ -25,7 +25,7 @@ namespace AndroidBot.Listeners
             await Task.CompletedTask;
         }
 
-        public override async Task OnMessage(SocketMessage arg, Android android)
+        public override async Task OnMessage(SocketMessage arg, Android android, bool editedMessage)
         {
             SocketGuildUser author = android.MainGuild.GetUser(arg.Author.Id);
             if (author.IsBot) await Task.CompletedTask;

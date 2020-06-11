@@ -10,6 +10,6 @@ namespace AndroidBot.Listeners
         public virtual ulong[] Channels { get; private set; } = {  };
 
         public abstract Task Initialise(Android android);
-        public abstract Task OnMessage(SocketMessage arg, Android android);
+        public abstract Task OnMessage(SocketMessage arg, Android android, bool editedMessage);
     }
 }

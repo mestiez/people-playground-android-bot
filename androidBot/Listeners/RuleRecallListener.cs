@@ -19,7 +19,7 @@ namespace AndroidBot.Listeners
             await Task.CompletedTask;
         }
 
-        public override async Task OnMessage(SocketMessage arg, Android android)
+        public override async Task OnMessage(SocketMessage arg, Android android, bool editedMessage)
         {
             var message = arg.Content;
             var rules = await Utils.ReadAllRules();

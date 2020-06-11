@@ -59,8 +59,14 @@ namespace AndroidBot.Listeners
             await Task.CompletedTask;
         }
 
-        public override async Task OnMessage(SocketMessage arg, Android android)
+        public override async Task OnMessage(SocketMessage arg, Android android, bool editedMessage)
         {
+            if (IsSuggestion(arg.Content) && (editedMessage || Suggestions.ContainsKey(arg.Id)))
+            {
+                await arg.Channel.SendMessageAsync("do not edit your suggestion, especially if it was marked a duplicate");
+                await Task.CompletedTask;
+                return;
+            }
             await CheckNewSuggestion(arg);
         }
 

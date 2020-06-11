@@ -18,7 +18,7 @@ namespace AndroidBot.Listeners
             await Task.CompletedTask;
         }
 
-        public override async Task OnMessage(SocketMessage message, Android android)
+        public override async Task OnMessage(SocketMessage message, Android android, bool editedMessage)
         {
             if (message.IsPinned && !ignoreFurtherEdit.Contains(message.Id))
             {
