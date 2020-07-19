@@ -47,6 +47,7 @@ namespace AndroidBot
             public const ulong Any = 0;
 
             public const ulong Everyone = 603649973510340619;
+            public const ulong TechAccess = 734376830831951932;
             public const ulong Muted = 604692303550087207;
             public const ulong Clown = 675428048719446096;
             public const ulong Cowboy = 705165944007426130;

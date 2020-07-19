@@ -22,6 +22,18 @@ namespace AndroidBot.Listeners
         public static async Task Unlock(CommandParameters parameters)
         {
             await RemoveRole(parameters.SocketMessage, Server.Roles.Clown);
+        }        
+        
+        [Command(aliases: new[] { "christen", "nerd"})]
+        public static async Task Tech(CommandParameters parameters)
+        {
+            await SetRole(parameters.SocketMessage, Server.Roles.TechAccess);
+        }
+
+        [Command(aliases: new[] { "shame", "unnerd" })]
+        public static async Task Untech(CommandParameters parameters)
+        {
+            await RemoveRole(parameters.SocketMessage, Server.Roles.TechAccess);
         }
 
         [Command]
@@ -63,9 +75,16 @@ namespace AndroidBot.Listeners
             foreach (var user in relevantUsers)
             {
                 if (removeRole)
+                {
+
+                    Console.WriteLine("Removed role" + role.Name);
                     await user.RemoveRoleAsync(role);
+                }
                 else
+                {
+                    Console.WriteLine("Added role" + role.Name);
                     await user.AddRoleAsync(role);
+                }
             }
         }
 

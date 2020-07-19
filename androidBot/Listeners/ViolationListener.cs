@@ -21,7 +21,7 @@ namespace AndroidBot.Listeners
         public override async Task Initialise(Android android)
         {
             Violations.Add(new MentionViolation(Server.Users.zooi));
-            Violations.Add(new MentionSpamViolation(5, 4));
+            Violations.Add(new MentionSpamViolation(5, 10));
             await Task.CompletedTask;
         }
 
