@@ -22,9 +22,9 @@ namespace AndroidBot.Listeners
         public static async Task Unlock(CommandParameters parameters)
         {
             await RemoveRole(parameters.SocketMessage, Server.Roles.Clown);
-        }        
-        
-        [Command(aliases: new[] { "christen", "nerd"})]
+        }
+
+        [Command(aliases: new[] { "christen", "nerd" })]
         public static async Task Tech(CommandParameters parameters)
         {
             await SetRole(parameters.SocketMessage, Server.Roles.TechAccess);
@@ -50,33 +50,34 @@ namespace AndroidBot.Listeners
 
         private static async Task SetRole(SocketMessage message, ulong roleId, bool removeRole = false)
         {
-            var matches = Utils.GetUserCodesFromText(message.Content);
-            if (!matches.Any())
-            {
-                await message.Channel.SendMessageAsync(DebugResponseConfiguration.Current.NoUserSpecifiedResponse.PickRandom());
-                return;
-            }
+            //var matches = Utils.GetUserCodesFromText(message.Content);
+            //if (!matches.Any())
+            //{
+            //    await message.Channel.SendMessageAsync(DebugResponseConfiguration.Current.NoUserSpecifiedResponse.PickRandom());
+            //    return;
+            //}
 
-            List<SocketGuildUser> relevantUsers = new List<SocketGuildUser>();
-            foreach (Match match in matches)
-            {
-                string toParse = new string(match.ToString().Where(c => char.IsDigit(c)).ToArray());
-                if (!ulong.TryParse(toParse, out ulong result)) continue;
-                try
-                {
-                    relevantUsers.Add(Android.Instance.MainGuild.GetUser(result));
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine("Cannot retrieve user with id " + result);
-                }
-            }
+            //List<SocketGuildUser> relevantUsers = new List<SocketGuildUser>();
+            //foreach (Match match in matches)
+            //{
+            //    string toParse = new string(match.ToString().Where(c => char.IsDigit(c)).ToArray());
+            //    if (!ulong.TryParse(toParse, out ulong result)) continue;
+            //    try
+            //    {
+            //        relevantUsers.Add(Android.Instance.MainGuild.GetUser(result));
+            //    }
+            //    catch (Exception)
+            //    {
+            //        Console.WriteLine("Cannot retrieve user with id " + result);
+            //    }
+            //}
+            var relevantUsers = message.MentionedUsers;
             var role = Android.Instance.MainGuild.GetRole(roleId);
-            foreach (var user in relevantUsers)
+            foreach (SocketGuildUser user in relevantUsers)
             {
+                Console.WriteLine("Attempt to update role for " + user.Username);
                 if (removeRole)
                 {
-
                     Console.WriteLine("Removed role" + role.Name);
                     await user.RemoveRoleAsync(role);
                 }
