@@ -11,10 +11,46 @@ namespace AndroidBot.Listeners
     [CommandContainer(roles: new[] { Server.Roles.Administrators, Server.Roles.TrialMods, Server.Roles.Developers, Server.Roles.Moderators })]
     public struct DebugCommands
     {
+        [Command(roles: new[] { Server.Roles.Developers })]
+        public static async Task Quit(CommandParameters parameters)
+        {
+            await parameters.SocketMessage.Channel.SendMessageAsync("goodbye");
+            await parameters.Android.Shutdown();
+        }
+
+        [Command]
+        public static async Task Compare(CommandParameters parameters)
+        {
+            var levenshtein = new F23.StringSimilarity.NormalizedLevenshtein();
+            var adverbs = new HashSet<string>(await File.ReadAllLinesAsync("all-adverbs.txt"));
+
+            var A = GetSignificantContent(parameters.Arguments[0]);
+            var B = GetSignificantContent(parameters.Arguments[1]);
+
+            var duplicate = (A == B) || levenshtein.Distance(A, B) < .25f;
+
+            await parameters.SocketMessage.Channel.SendMessageAsync($"{A}≈{B}={duplicate}");
+
+            string GetSignificantContent(string content)
+            {
+                string lower = " " + content.Normalize().ToLower() + " ";
+
+                foreach (var adverb in adverbs)
+                {
+                    lower = lower.Replace(" " + adverb + " ", " ");
+                }
+
+                return lower.Trim();
+            }
+        }
+
         [Command]
         public static async Task Ping(CommandParameters parameters)
         {
-            await parameters.SocketMessage.Channel.SendMessageAsync("pong");
+            var thenTicks = parameters.SocketMessage.Timestamp.UtcTicks;
+            var nowTicks = DateTimeOffset.UtcNow.Ticks;
+            var distance = TimeSpan.FromTicks(nowTicks - thenTicks);
+            await parameters.SocketMessage.Channel.SendMessageAsync("pong (" + Math.Round(distance.TotalMilliseconds, 3) + "ms)");
         }
 
         [Command]
@@ -46,7 +82,6 @@ namespace AndroidBot.Listeners
         [Command(default, roles: new[] { Server.Roles.Developers })]
         public static async Task ClearSuggestions(CommandParameters parameters)
         {
-
             int newMaxSize = 1000;
             if (parameters.Arguments.Length > 0)
                 if (int.TryParse(parameters.Arguments[0], out var i))
@@ -99,7 +134,7 @@ namespace AndroidBot.Listeners
                 await parameters.SocketMessage.Channel.SendMessageAsync($"i can only show {MaxSuggestionCount} entries");
             }
 
-            var values = parameters.Android.GetListener<SuggestionListener>().Suggestions.Values;
+            var values = suggestions.Values;
             IEnumerable<SuggestionListener.Suggestion> topSuggestions;
             if (order == Order.Worst)
                 topSuggestions = values.OrderBy(s => s.Score).Take(count);
@@ -107,7 +142,7 @@ namespace AndroidBot.Listeners
                 topSuggestions = values.OrderByDescending(s => s.Score).Take(count);
 
             var builder = new EmbedBuilder();
-            builder.Color = Color.Teal;
+            builder.Color = new Color(0x7289da);
             int index = 0;
             foreach (var suggestion in topSuggestions)
             {
@@ -126,7 +161,7 @@ namespace AndroidBot.Listeners
             await parameters.Android.GetListener<CrudeModListener>().SaveToDisk();
         }
 
-        [Command(roles:new[] { Server.Roles.Administrators, Server.Roles.Developers })]
+        [Command(roles: new[] { Server.Roles.Administrators, Server.Roles.Developers })]
         public static async Task RetrieveSpreadsheet(CommandParameters parameters)
         {
             await parameters.SocketMessage.Channel.SendMessageAsync($"here goes...");

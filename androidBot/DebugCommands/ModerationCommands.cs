@@ -27,13 +27,13 @@ namespace AndroidBot.Listeners
         [Command(aliases: new[] { "christen", "nerd" })]
         public static async Task Tech(CommandParameters parameters)
         {
-            await SetRole(parameters.SocketMessage, Server.Roles.TechAccess);
+            await SetRole(parameters.SocketMessage, Server.Roles.TechBan);
         }
 
         [Command(aliases: new[] { "shame", "unnerd" })]
         public static async Task Untech(CommandParameters parameters)
         {
-            await RemoveRole(parameters.SocketMessage, Server.Roles.TechAccess);
+            await RemoveRole(parameters.SocketMessage, Server.Roles.TechBan);
         }
 
         [Command]
@@ -48,31 +48,49 @@ namespace AndroidBot.Listeners
             await RemoveRole(parameters.SocketMessage, Server.Roles.Cowboy);
         }
 
+        [Command(aliases: new[] { "banish", "evict", "exile", "deport" })]
+        public static async Task Ban(CommandParameters parameters)
+        {
+            await SetChannelBan(parameters.SocketMessage, true);
+        }
+        [Command(aliases: new[] { "unbanish", "welcome", "allow", "permit" })]
+        public static async Task Unban(CommandParameters parameters)
+        {
+            await SetChannelBan(parameters.SocketMessage, false);
+        }
+
+        private static async Task SetChannelBan(SocketMessage message, bool activeBan)
+        {
+            if (!message.MentionedUsers.Any())
+            {
+                await message.Channel.SendMessageAsync(DebugResponseConfiguration.Current.NoUserSpecifiedResponse.PickRandom());
+                return;
+            }
+
+            ulong[] ignoreRoles = {
+                Server.Roles.Muted,
+                Server.Roles.Cowboy,
+            };
+
+            var channels = message.MentionedChannels;
+
+            foreach (var channel in channels)
+            {
+                var applicableRoles = channel.PermissionOverwrites.Where(p => p.TargetType == PermissionTarget.Role && !ignoreRoles.Contains(p.TargetId) && p.Permissions.SendMessages == PermValue.Deny);
+                if (!applicableRoles.Any())
+                {
+                    await message.Channel.SendMessageAsync($"no valid roles found for a <#{channel.Id}> ban (｡•́︿•̀｡)");
+                    continue;
+                }
+
+                await SetRole(message, applicableRoles.First().TargetId, !activeBan);
+            }
+        }
+
         private static async Task SetRole(SocketMessage message, ulong roleId, bool removeRole = false)
         {
-            //var matches = Utils.GetUserCodesFromText(message.Content);
-            //if (!matches.Any())
-            //{
-            //    await message.Channel.SendMessageAsync(DebugResponseConfiguration.Current.NoUserSpecifiedResponse.PickRandom());
-            //    return;
-            //}
-
-            //List<SocketGuildUser> relevantUsers = new List<SocketGuildUser>();
-            //foreach (Match match in matches)
-            //{
-            //    string toParse = new string(match.ToString().Where(c => char.IsDigit(c)).ToArray());
-            //    if (!ulong.TryParse(toParse, out ulong result)) continue;
-            //    try
-            //    {
-            //        relevantUsers.Add(Android.Instance.MainGuild.GetUser(result));
-            //    }
-            //    catch (Exception)
-            //    {
-            //        Console.WriteLine("Cannot retrieve user with id " + result);
-            //    }
-            //}
-            var relevantUsers = message.MentionedUsers;
             var role = Android.Instance.MainGuild.GetRole(roleId);
+            var relevantUsers = message.MentionedUsers;
             foreach (SocketGuildUser user in relevantUsers)
             {
                 Console.WriteLine("Attempt to update role for " + user.Username);
@@ -144,63 +162,16 @@ namespace AndroidBot.Listeners
             await ParseAndMute(parameters, false);
         }
 
-        //[Command(aliases: new[] { "delete my shit" }, roles: new[] { Server.Roles.Moderators, Server.Roles.Developers })]
-        //public static async Task deleteMyShit(CommandParameters parameters)
-        //{
-        //    ulong[] includeChannels = {
-        //        Server.Channels.General,
-        //        Server.Channels.PeoplePlayground,
-        //        Server.Channels.VC,
-        //    };
-
-        //    await parameters.SocketMessage.Channel.SendMessageAsync("okay...");
-
-        //    int count = 0;
-
-        //    foreach (var i in includeChannels)
-        //    {
-        //        var c = await parameters.Android.Client.Rest.GetChannelAsync(i) as ITextChannel;
-
-        //        var messages = (await c.GetMessagesAsync(4500).FlattenAsync()).Where(m => m.Author.Id == parameters.SocketMessage.Author.Id);
-        //        Console.WriteLine(string.Join("\n", messages));
-        //        count += messages.Count();
-        //        //await c.DeleteMessagesAsync(messages);
-        //    }
-
-        //    await parameters.SocketMessage.Channel.SendMessageAsync($"...deleted {count} messages");
-        //}
-
-        //public static async Task Ban(CommandParameters parameters)
-        //{
-        //    var matches = Utils.GetUserCodesFromText(parameters.SocketMessage.Content);
-        //}
-
         private static async Task ParseAndMute(CommandParameters parameters, bool muted, TimeSpan duration = default)
         {
-            var matches = Utils.GetUserCodesFromText(parameters.SocketMessage.Content);
-            if (!matches.Any())
+            var relevantUsers = parameters.SocketMessage.MentionedUsers;
+            if (!relevantUsers.Any())
             {
                 await parameters.SocketMessage.Channel.SendMessageAsync(DebugResponseConfiguration.Current.NoUserSpecifiedResponse.PickRandom());
                 return;
             }
 
-            List<SocketGuildUser> relevantUsers = new List<SocketGuildUser>();
-
-            foreach (Match match in matches)
-            {
-                string toParse = new string(match.ToString().Where(c => char.IsDigit(c)).ToArray());
-                if (!ulong.TryParse(toParse, out ulong result)) continue;
-                try
-                {
-                    relevantUsers.Add(parameters.Android.MainGuild.GetUser(result));
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine("Cannot retrieve user with id " + result);
-                }
-            }
-
-            foreach (var user in relevantUsers)
+            foreach (SocketGuildUser user in relevantUsers)
             {
                 if (muted)
                     await MuteSystem.Mute(user.Id, parameters.SocketMessage.Channel.Id, duration);

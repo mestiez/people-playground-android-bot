@@ -11,7 +11,7 @@ namespace AndroidBot.Listeners
 {
     public class ShareWorkshopListener : MessageListener
     {
-        public override ulong[] Channels => new[] { Server.Channels.ShareWorkshop };
+        public override ulong[] Channels => new[] { Server.Channels.ShareWorkshop, 747599322467795014u }; //contest time
         public override ulong[] Roles => new[] { Server.Roles.Any };
         public override ulong[] Users => new[] { Server.Users.Any };
         public const string WorkshopPath = "https://steamcommunity.com/sharedfiles/filedetails/?id=";
@@ -32,19 +32,6 @@ namespace AndroidBot.Listeners
                 bool userBypass = UserCanBypass(arg.Author, android);
                 if (!isValidWorkshopLink && !userBypass)
                     await arg.Channel.DeleteMessageAsync(arg);
-                //else
-                //{
-                //    //holy shit, a valid workshop link!
-                //    var trimmedUrl = content[0].Trim();
-                //    if (arg.Content.Trim() == trimmedUrl)
-                //    {
-                //        //ok so it has nothing extra, just the link itself. time to embed a thing to make it clearer
-                //        if (long.TryParse(trimmedUrl.Split('=').Last(), out long id))
-                //            await PostMessageAboutPublishedFile(id, trimmedUrl, arg);
-                //        else
-                //            Console.WriteLine("non valid workshop link got through somehow wtf");
-                //    }
-                //}
             }
         }
 

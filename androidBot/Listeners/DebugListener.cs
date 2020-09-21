@@ -17,9 +17,9 @@ namespace AndroidBot.Listeners
         private List<string> generatedTriggers = new List<string>();
 
         private readonly List<CommandReference> commands = new List<CommandReference>();
-        private Dictionary<ulong, DateTime> waitingForMap = new Dictionary<ulong, DateTime>();
+        private readonly Dictionary<ulong, DateTime> waitingForMap = new Dictionary<ulong, DateTime>();
 
-        private Dictionary<string, string> remoteResponseTable = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> remoteResponseTable = new Dictionary<string, string>();
 
         public async override Task Initialise(Android android)
         {

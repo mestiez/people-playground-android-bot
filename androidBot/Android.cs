@@ -81,7 +81,15 @@ namespace AndroidBot
                 Console.WriteLine(listener.GetType().Name + " initialised");
             }
 
-            await Task.Delay(-1);
+            await Task.Run(() =>
+            {
+                while (Client.ConnectionState != ConnectionState.Disconnected) { }
+            });
+        }
+
+        public async Task Shutdown()
+        {
+            await Client.StopAsync();
         }
 
         private Task MessageUpdated(Cacheable<IMessage, ulong> messageId, SocketMessage message, ISocketMessageChannel channel)

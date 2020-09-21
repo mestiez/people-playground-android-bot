@@ -54,7 +54,7 @@ namespace AndroidBot.Listeners
                 var pins = await item.GetPinnedMessagesAsync();
                 foreach (var pin in pins)
                 {
-                    string entry = $"{pin.Timestamp.ToString()} by {pin.Author.Username}({pin.Author.Discriminator}) [{pin.GetJumpUrl()}]\n\t{pin.Content}\n\n";
+                    string entry = $"{pin.Timestamp} by {pin.Author.Username}({pin.Author.Discriminator}) [{pin.GetJumpUrl()}]\n\t{pin.Content}\n\n";
                     result += entry;
                 }
             }

@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace AndroidBot.Listeners
 {
@@ -24,12 +25,29 @@ namespace AndroidBot.Listeners
         public static readonly IEmote Upvote = Server.Emotes.YES;
         public static readonly IEmote Downvote = Server.Emotes.NO;
 
-        private NormalizedLevenshtein Levenshtein = new NormalizedLevenshtein();
+        private readonly NormalizedLevenshtein levenshtein = new NormalizedLevenshtein();
+        private HashSet<string> adverbs;
+
+        private Timer timer = new Timer();
 
         public override async Task Initialise(Android android)
         {
             android.Client.ReactionAdded += OnReactionAdd;
-            android.Client.ReactionRemoved += OnReactionRemoved; ;
+            android.Client.ReactionRemoved += OnReactionRemoved;
+
+            adverbs = new HashSet<string>(await File.ReadAllLinesAsync("all-adverbs.txt"));
+            Console.WriteLine("adverbs: \n\n" + string.Join("\n", adverbs));
+
+            timer.Interval = TimeSpan.FromHours(1).TotalMilliseconds;
+            timer.Elapsed += async (o, e) =>
+            {
+                var now = DateTime.UtcNow;
+                if (now.DayOfWeek == DayOfWeek.Tuesday && now.TimeOfDay.Hours == 8)
+                    await ResetPeriodicBoard();
+            };
+
+            timer.Start();
+
             await Load();
             await Task.CompletedTask;
         }
@@ -157,14 +175,63 @@ namespace AndroidBot.Listeners
             Suggestions.Add(message.Id, new Suggestion(upvoteMetadata.ReactionCount, downvoteMetadata.ReactionCount, message.Author.Id, message.Content));
         }
 
-        private bool IsSuggestion(string content) => (content.Trim().ToLower().StartsWith("suggestion"));
+        private bool IsSuggestion(string content) => (content.Trim().ToLower().StartsWith("suggestion:"));
 
         private bool IsDuplicate(string suggestion)
         {
+            string keyContent = GetSignificantContent(suggestion);
+
             return Suggestions.Any(s =>
-            s.Value.Content == suggestion ||
-            Levenshtein.Distance(s.Value.Content, suggestion) < .25f
-            );
+            {
+                string value = GetSignificantContent(s.Value.Content);
+
+                return (value == keyContent) || levenshtein.Distance(value, keyContent) < .1f;
+            });
+        }
+
+        private string GetSignificantContent(string content)
+        {
+            string lower = " " + content.Normalize().ToLower() + " ";
+
+            foreach (var adverb in adverbs)
+            {
+                lower = lower.Replace(" " + adverb + " ", " ");
+            }
+
+            return lower.Trim();
+        }
+
+        private async Task ResetPeriodicBoard()
+        {
+            var channel = Android.Instance.MainGuild.GetTextChannel(Server.Channels.Suggestions);
+
+            await channel.SendMessageAsync("weekly suggestion reset");
+
+            var embedAndCount = CreateLeaderboardEmbed();
+            if (embedAndCount.count != 0)
+                await channel.SendMessageAsync($"the top {embedAndCount.count} suggestions the past week were", false, embedAndCount.embed);
+
+            await channel.SendMessageAsync("resetting...");
+
+            Suggestions.Clear();
+            Save();
+
+            await channel.SendMessageAsync("suggestions reset (≧◡≦)");
+        }
+
+        private (Embed embed, int count) CreateLeaderboardEmbed()
+        {
+            var values = Suggestions.Values;
+            var topSuggestions = values.OrderByDescending(s => s.Score).Take(25);
+            var builder = new EmbedBuilder();
+            builder.Color = new Color(0x7289da);
+            int index = 0;
+            foreach (var suggestion in topSuggestions)
+            {
+                index++;
+                builder.AddField($"#{index}: {suggestion.Score} points", suggestion.EllipsedContent);
+            }
+            return (builder.Build(), topSuggestions.Count());
         }
 
         [Serializable]
