@@ -34,16 +34,23 @@ namespace AndroidBot.Listeners
         {
             android.Client.ReactionAdded += OnReactionAdd;
             android.Client.ReactionRemoved += OnReactionRemoved;
-
             adverbs = new HashSet<string>(await File.ReadAllLinesAsync("all-adverbs.txt"));
-            Console.WriteLine("adverbs: \n\n" + string.Join("\n", adverbs));
 
-            timer.Interval = TimeSpan.FromHours(1).TotalMilliseconds;
-            timer.Elapsed += async (o, e) =>
+            timer.Interval = TimeSpan.FromSeconds(15).TotalMilliseconds;
+            timer.Elapsed += async (o, ee) =>
             {
                 var now = DateTime.UtcNow;
                 if (now.DayOfWeek == DayOfWeek.Tuesday && now.TimeOfDay.Hours == 8)
-                    await ResetPeriodicBoard();
+                {
+                    try
+                    {
+                        await ResetPeriodicBoard();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.ToString());
+                    }
+                }
             };
 
             timer.Start();
@@ -201,7 +208,7 @@ namespace AndroidBot.Listeners
             return lower.Trim();
         }
 
-        private async Task ResetPeriodicBoard()
+        public async Task ResetPeriodicBoard()
         {
             var channel = Android.Instance.MainGuild.GetTextChannel(Server.Channels.Suggestions);
 

@@ -94,6 +94,12 @@ namespace AndroidBot.Listeners
             await parameters.SocketMessage.Channel.SendMessageAsync($"cleared {size} suggestions, new list has {listener.Suggestions.Count} entries");
         }
 
+        [Command(default, roles: new[] { Server.Roles.Developers })]
+        public static async Task SuggestionPurge(CommandParameters parameters)
+        {
+            await parameters.Android.GetListener<SuggestionListener>().ResetPeriodicBoard();
+        }
+
         [Command(new[] { "top", "show top", "show the top", "show me the top" })]
         public static async Task TopSuggestions(CommandParameters parameters)
         {

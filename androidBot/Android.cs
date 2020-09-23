@@ -32,6 +32,8 @@ namespace AndroidBot
 
         private static string setStorage = null;
         private static string argToken = null;
+        private bool shouldShutDown = false;
+
         public static string ApiKey { get; private set; } = null;
 
         public readonly MessageListener[] ActiveListeners =
@@ -61,7 +63,7 @@ namespace AndroidBot
                 Path += "/";
             }
 
-            ApiKey = ApiKey ?? Environment.GetEnvironmentVariable("ANDROID_STEAM_API",EnvironmentVariableTarget.Machine);
+            ApiKey = ApiKey ?? Environment.GetEnvironmentVariable("ANDROID_STEAM_API", EnvironmentVariableTarget.Machine);
 
             Client.Log += Log;
             Client.MessageReceived += (arg) => MessageReceived(arg, false);
@@ -83,13 +85,18 @@ namespace AndroidBot
 
             await Task.Run(() =>
             {
-                while (Client.ConnectionState != ConnectionState.Disconnected) { }
+                while (true)
+                {
+                    if (shouldShutDown && Client.ConnectionState == ConnectionState.Disconnected)
+                        break;
+                }
             });
         }
 
         public async Task Shutdown()
         {
             await Client.StopAsync();
+            shouldShutDown = true;
         }
 
         private Task MessageUpdated(Cacheable<IMessage, ulong> messageId, SocketMessage message, ISocketMessageChannel channel)
