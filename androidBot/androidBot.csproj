@@ -9,6 +9,7 @@
     <PackageReference Include="Discord.Net" Version="2.2.0" />
     <PackageReference Include="F23.StringSimilarity" Version="3.1.0" />
     <PackageReference Include="Google.Apis.Sheets.v4" Version="1.45.0.1965" />
+    <PackageReference Include="WatsonWebsocket" Version="2.2.0.1" />
   </ItemGroup>
 
   <ItemGroup>
