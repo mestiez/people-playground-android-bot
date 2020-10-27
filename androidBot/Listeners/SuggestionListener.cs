@@ -29,6 +29,7 @@ namespace AndroidBot.Listeners
         private HashSet<string> adverbs;
 
         private Timer timer = new Timer();
+        private bool canReset = true;
 
         public override async Task Initialise(Android android)
         {
@@ -36,21 +37,24 @@ namespace AndroidBot.Listeners
             android.Client.ReactionRemoved += OnReactionRemoved;
             adverbs = new HashSet<string>(await File.ReadAllLinesAsync("all-adverbs.txt"));
 
-            timer.Interval = TimeSpan.FromSeconds(15).TotalMilliseconds;
+            timer.Interval = TimeSpan.FromMinutes(10).TotalMilliseconds;
             timer.Elapsed += async (o, ee) =>
             {
                 var now = DateTime.UtcNow;
-                if (now.DayOfWeek == DayOfWeek.Tuesday && now.TimeOfDay.Hours == 8)
+                if (now.DayOfWeek == DayOfWeek.Tuesday && now.TimeOfDay.Hours == 15)
                 {
                     try
                     {
+                        if (!canReset) return;
                         await ResetPeriodicBoard();
+                        canReset = false;
                     }
                     catch (Exception e)
                     {
                         Console.WriteLine(e.ToString());
                     }
                 }
+                else canReset = true;
             };
 
             timer.Start();

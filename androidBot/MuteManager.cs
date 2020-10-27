@@ -149,23 +149,25 @@ namespace AndroidBot
             }
         }
 
-        private async Task SetRole(ulong userId, bool muted)
+        private async Task SetRole(ulong userId, bool muteTarget)
         {
             var mutedRole = android.MainGuild.GetRole(Server.Roles.Muted);
-            SocketGuildUser user = android.MainGuild.GetUser(userId);
+            var restGuild = await android.Client.Rest.GetGuildAsync(android.MainGuild.Id);
+            var user = await restGuild.GetUserAsync(userId);
+
             if (user == null)
             {
                 Console.WriteLine("Could not retrieve user " + userId);
                 return;
             }
-            bool alreadyMuted = user.Roles.Any(r => r.Id == mutedRole.Id);
+            bool alreadyMuted = user.RoleIds.Any(r => r == Server.Roles.Muted);
 
-            if (muted && alreadyMuted)
+            if (muteTarget && alreadyMuted)
             {
                 Console.WriteLine("User is already muted: " + user.Username);
                 return;
             }
-            else if (!muted && !alreadyMuted)
+            else if (!muteTarget && !alreadyMuted)
             {
                 Console.WriteLine("User is already unmuted: " + user.Username);
                 return;
@@ -173,7 +175,7 @@ namespace AndroidBot
 
             try
             {
-                if (muted)
+                if (muteTarget)
                     await user.AddRoleAsync(mutedRole);
                 else
                     await user.RemoveRoleAsync(mutedRole);
