@@ -22,6 +22,7 @@ namespace AndroidBot.Listeners
         public override async Task Initialise(Android android)
         {
             this.android = android;
+
             android.Client.UserJoined += Client_UserJoined;
             android.Client.UserLeft += Client_UserLeft;
             android.Client.UserBanned += Client_UserBanned;
@@ -32,7 +33,7 @@ namespace AndroidBot.Listeners
 
         private async Task Client_UserUnbanned(SocketUser user, SocketGuild guild)
         {
-            await Append($"{user.Username}({user.Discriminator}) unbanned on {DateTime.Now.ToString()}");
+            await Append($"{user.Username}#{user.Discriminator} unbanned on {DateTime.Now.ToString()}");
             await Task.CompletedTask;
         }
 
@@ -48,13 +49,13 @@ namespace AndroidBot.Listeners
             {
                 Console.WriteLine("Failed to get ban reason for " + user.Username);
             }
-            await Append($"{user.Username}({user.Discriminator}) banned on {DateTime.Now.ToString()}{banReason}");
+            await Append($"{user.Username}#{user.Discriminator} banned on {DateTime.Now.ToString()}{banReason}");
             await Task.CompletedTask;
         }
 
         private async Task Client_UserLeft(SocketGuildUser user)
         {
-            string leaveMessage = $"{user.Username}({user.Discriminator}) left on {DateTime.Now.ToString()}";
+            string leaveMessage = $"{user.Username}#{user.Discriminator} left on {DateTime.Now.ToString()}";
             var roles = user.Roles.Where(r => !r.IsEveryone).ToList() ;
             if (roles.Count > 0)
                 leaveMessage += $"\n**Left with roles:** {string.Join(", ", roles.Select(s => s.Name))}";
@@ -65,7 +66,21 @@ namespace AndroidBot.Listeners
 
         private async Task Client_UserJoined(SocketGuildUser user)
         {
-            await Append($"{user.Username}({user.Discriminator}) joined on {DateTime.Now.ToString()}");
+            var age = (DateTime.UtcNow - user.CreatedAt.UtcDateTime);
+            string timespanString;
+
+            if (age.TotalDays > 1)
+                timespanString = $"{Math.Round(age.TotalDays, 1)} days";
+            else if (age.TotalHours > 1)
+                timespanString = $"{Math.Round(age.TotalHours, 1)} hours";
+            else if (age.TotalMinutes > 1)
+                timespanString = $"{Math.Round(age.TotalMinutes, 1)} minutes";
+            else
+                timespanString = $"{Math.Round(age.TotalSeconds, 1)} seconds";
+
+            var a = $"<@{user.Id}> joined on {DateTime.Now}\nThis account is {timespanString} old";
+
+            await Append(a);
 
             if (MuteSystem.IsMuted(user.Id))
                 await user.AddRoleAsync(android.MainGuild.GetRole(Server.Roles.Muted));

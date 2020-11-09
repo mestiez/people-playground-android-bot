@@ -37,7 +37,7 @@ namespace AndroidBot.Listeners
             android.Client.ReactionRemoved += OnReactionRemoved;
             adverbs = new HashSet<string>(await File.ReadAllLinesAsync("all-adverbs.txt"));
 
-            timer.Interval = TimeSpan.FromMinutes(10).TotalMilliseconds;
+            timer.Interval = TimeSpan.FromMinutes(60).TotalMilliseconds;
             timer.Elapsed += async (o, ee) =>
             {
                 var now = DateTime.UtcNow;
@@ -46,8 +46,8 @@ namespace AndroidBot.Listeners
                     try
                     {
                         if (!canReset) return;
-                        await ResetPeriodicBoard();
                         canReset = false;
+                        await ResetPeriodicBoard();
                     }
                     catch (Exception e)
                     {
